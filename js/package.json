@@ -1,0 +1,46 @@
+{
+  "name": "ipyvis",
+  "version": "0.1.0",
+  "description": "Widgets library for 3-D mesh analysis",
+  "author": "Martin Renou",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martinRenou/ipyvis.git"
+  },
+  "keywords": [
+    "jupyter",
+    "widgets",
+    "ipython",
+    "ipywidgets",
+    "jupyterlab-extension"
+  ],
+  "files": [
+    "lib/**/*.js",
+    "dist/*.js"
+  ],
+  "scripts": {
+    "clean": "rimraf dist/",
+    "prepublish": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "webpack": "^3.5.5",
+    "rimraf": "^2.6.1"
+  },
+  "dependencies": {
+    "@jupyter-widgets/base": "^1.0.0",
+    "lodash": "^4.17.4",
+    "binary-search-tree": "^0.2.6",
+    "gl-matrix-mat3": "^2.2.1-npm",
+    "gl-matrix-mat4": "^2.2.1-npm",
+    "gl-matrix-vec3": "^2.2.1-npm",
+    "gl-matrix-vec4": "^2.2.1-npm",
+    "jbinary": "^2.1.3",
+    "object.values": "^1.0.4",
+    "three": "^0.81.2"
+  },
+  "jupyterlab": {
+    "extension": "lib/labplugin"
+  }
+}
