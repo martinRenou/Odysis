@@ -1,5 +1,5 @@
 /**
- * @author: Martin Renou / martin.renou@isae.fr
+ * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
 let THREE = require('../three');
@@ -473,7 +473,7 @@ class Block {
   }
 
   /**
-   * Private method that return an component node if it exists 
+   * Private method that return an component node if it exists
    */
   _getComponent (dataName, componentName) {
     if (this.data[dataName] === undefined) {

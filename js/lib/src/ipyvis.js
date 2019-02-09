@@ -1,42 +1,16 @@
-/**
- * @author: Martin Renou / martin.renou@isae.fr
- * **/
-
+let widgets = require('@jupyter-widgets/base');
+let _ = require('lodash');
 let object_values = require('object.values');
+require('./three');
+require('./ipyvis.css');
 
 if (!Object.values) {
   object_values.shim();
 }
 
-require('./three');
-
-let {View, Mesh, registerBlockType, blockTypeRegister} = require('./ViewUtils/View');
+let {View, Mesh} = require('./ViewUtils/View');
 
 let views = new Map();
-
-/**
- * Main function that display the 3D scene described in blocksDescription
- * @param container : DOM element where you want to display the scene,
- * only one view is allowed per container.
- * @param blocksDescription : description of the tree of blocks
- * @param opts : map containing some options,
- * for example { width: 800, height: 600 }
- * @return : Promise of creating the view
- * **/
-function display (container, mesh, blocksDescription, opts) {
-  if (views.has(container)) {
-    return views.get(container).update(mesh, blocksDescription, opts);
-  } else {
-    let view = new View(container, mesh, blocksDescription, opts);
-
-    views.set(
-      container,
-      view
-      );
-
-    return view.process();
-  }
-}
 
 /**
  * Getter for view
@@ -81,12 +55,26 @@ function remove_view (container) {
   return false;
 }
 
+let SceneModel = widgets.DOMWidgetModel.extend({
+    defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
+        _model_name : 'SceneModel',
+        _view_name : 'SceneView',
+        _model_module : 'ipyvis',
+        _view_module : 'ipyvis',
+        _model_module_version : '0.1.0',
+        _view_module_version : '0.1.0'
+    })
+});
+
+let SceneView = widgets.DOMWidgetView.extend({
+    render: function() {
+        this.el.classList.add('ipyvis-scene');
+        let view = new View(this.el);
+        views.set(this.el, view);
+    }
+});
+
 module.exports = {
-  Mesh: Mesh,
-  display: display,
-  get_view: get_view,
-  resize_view: resize_view,
-  remove_view: remove_view,
-  registerBlockType: registerBlockType,
-  blockTypeRegister: blockTypeRegister
+    SceneModel: SceneModel,
+    SceneView: SceneView
 };

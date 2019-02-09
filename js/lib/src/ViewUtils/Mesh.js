@@ -1,5 +1,5 @@
 /**
- * @author: Martin Renou / martin.renou@isae.fr
+ * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
 let jBinary = require('jbinary');
@@ -119,4 +119,3 @@ class Mesh {
 }
 
 module.exports = Mesh;
-

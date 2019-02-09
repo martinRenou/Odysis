@@ -1,5 +1,5 @@
 /**
- * @author: Martin Renou / martin.renou@isae.fr
+ * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
 let TetraMesh = require('./octree/tetraMesh');

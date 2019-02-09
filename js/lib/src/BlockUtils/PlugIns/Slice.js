@@ -1,5 +1,5 @@
 /**
- * @author: Martin Renou / martin.renou@isae.fr
+ * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
 let PlugInBlock = require('../PlugInBlock');
@@ -96,7 +96,7 @@ class Slice extends PlugInBlock {
     this.min = this._sliceUtils.posMin;
     this.max = this._sliceUtils.posMax;
 
-    // Promise of process is rejected if the slice can't be computed 
+    // Promise of process is rejected if the slice can't be computed
     return this._sliceUtils._enableSlice;
   }
 

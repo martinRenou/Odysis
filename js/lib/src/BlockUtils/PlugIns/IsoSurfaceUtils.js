@@ -1,5 +1,5 @@
 /**
- * @author: Martin Renou / martin.renou@isae.fr
+ * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
 let vec3 = require('gl-matrix-vec3');
@@ -240,7 +240,7 @@ class IsoSurfaceUtils {
           v2[0], v2[1], v2[2],
           v3[0], v3[1], v3[2]
         );
-        
+
         interDatas.forEach((interData, dataIndex) => {
           surfaceDataArrays[dataIndex].push(interData[0]);
           surfaceDataArrays[dataIndex].push(interData[1]);
