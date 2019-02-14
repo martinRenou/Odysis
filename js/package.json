@@ -38,7 +38,6 @@
     "gl-matrix-mat4": "^2.2.1-npm",
     "gl-matrix-vec3": "^2.2.1-npm",
     "gl-matrix-vec4": "^2.2.1-npm",
-    "jbinary": "^2.1.3",
     "object.values": "^1.0.4",
     "three": "^0.81.2"
   },

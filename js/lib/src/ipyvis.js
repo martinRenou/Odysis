@@ -3,6 +3,8 @@ let _ = require('lodash');
 let object_values = require('object.values');
 require('./three');
 require('./ipyvis.css');
+let serialization = require('./serialization');
+
 
 if (!Object.values) {
   object_values.shim();
@@ -11,6 +13,8 @@ if (!Object.values) {
 let {View, Mesh} = require('./ViewUtils/View');
 
 let views = new Map();
+
+let ipyvis_version = '0.1.0';
 
 /**
  * Getter for view
@@ -61,8 +65,8 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _view_name : 'SceneView',
         _model_module : 'ipyvis',
         _view_module : 'ipyvis',
-        _model_module_version : '0.1.0',
-        _view_module_version : '0.1.0'
+        _model_module_version : ipyvis_version,
+        _view_module_version : ipyvis_version
     })
 });
 
@@ -74,7 +78,30 @@ let SceneView = widgets.DOMWidgetView.extend({
     }
 });
 
+let MeshModel = widgets.WidgetModel.extend({
+    defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
+        _model_name : 'MeshModel',
+        // _view_name : 'MeshView',
+        _model_module : 'ipyvis',
+        _view_module : 'ipyvis',
+        _model_module_version : ipyvis_version,
+        _view_module_version : ipyvis_version,
+        vertices: [],
+        faces: [],
+        tetras: [],
+        components: []
+    })
+}, {
+    serializers: _.extend({
+        vertices: serialization.float32array,
+        faces: serialization.uint32array,
+        tetras: serialization.uint32array,
+        components: { deserialize: widgets.unpack_models }
+    }, widgets.WidgetModel.serializers)
+});
+
 module.exports = {
     SceneModel: SceneModel,
-    SceneView: SceneView
+    SceneView: SceneView.
+    MeshModel: MeshModel
 };

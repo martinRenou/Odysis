@@ -14,29 +14,29 @@ class DataBlock extends Block {
   /**
    * Constructor for DataBlock
    * @param {THREE.Scene} scene - ThreeJS scene
-   * @param {Mesh} mesh - a mesh data object
+   * @param {Float32Array} vertices - list of 3-D coordinates of the mesh points
+   * @param {Uint32Array} faces - list of indices for the triangle faces
+   * @param {Uint32Array} tetras - list of indices for the tetrahedrons
+   * @param {Object} data - object containing the data. e.g. {'x': [0.1, 0.23, 1.23...], 'y':..., ...}
    */
-  constructor (scene, mesh) {
+  constructor (scene, vertices, faces, tetras, data) {
     super(scene);
     this.blockType = 'DataBlock';
-
-    this.mesh = mesh;
 
     this._processed = false;
     this._bufferGeometry = undefined;
     this._material = undefined;
 
-    this.coordArray = undefined;
-    this.data = undefined;
-    this.facesArray = undefined;
-    this.tetraArray = undefined;
+    this.coordArray = vertices;
+    this.facesArray = faces;
+    this.tetraArray = tetras;
+    this.data = data;
   }
 
   /**
    * Method that initialize DataBlock
    */
   process () {
-    return this.loadData().then(() => {
       this._processed = true;
 
       // Init attribute nodes for plug-in blocks node inputs
@@ -104,36 +104,6 @@ class DataBlock extends Block {
         this._wireframe = this.dispWireframe ? true : false;
       }
       this.wireframe = this._wireframe;
-    });
-  }
-
-  /**
-   * Function that load data
-   * @return {Promise} a promise of loading data
-   */
-  loadData () {
-    if (!this.mesh.loaded) {
-      // Load mesh data
-      return this.mesh._load().then(() => {
-        let {coordArray, data, facesArray, tetraArray} =
-          this.mesh.getArrays();
-
-        this.coordArray = coordArray;
-        this.data = data;
-        this.facesArray = facesArray;
-        this.tetraArray = tetraArray;
-      });
-    } else {
-      let {coordArray, data, facesArray, tetraArray} =
-        this.mesh.getArrays();
-
-      this.coordArray = coordArray;
-      this.data = data;
-      this.facesArray = facesArray;
-      this.tetraArray = tetraArray;
-
-      return Promise.resolve();
-    }
   }
 
   /**
