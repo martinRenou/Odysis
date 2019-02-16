@@ -78,6 +78,40 @@ let SceneView = widgets.DOMWidgetView.extend({
     }
 });
 
+let ComponentModel = widgets.WidgetModel.extend({
+    defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
+        _model_name : 'ComponentModel',
+        // _view_name : 'ComponentView',
+        _model_module : 'ipyvis',
+        _view_module : 'ipyvis',
+        _model_module_version : ipyvis_version,
+        _view_module_version : ipyvis_version,
+        name: '',
+        data: []
+    })
+}, {
+    serializers: _.extend({
+        data: { deserialize: serialization.float32array }
+    }, widgets.WidgetModel.serializers)
+});
+
+let DataModel = widgets.WidgetModel.extend({
+    defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
+        _model_name : 'DataModel',
+        // _view_name : 'DataView',
+        _model_module : 'ipyvis',
+        _view_module : 'ipyvis',
+        _model_module_version : ipyvis_version,
+        _view_module_version : ipyvis_version,
+        name: '',
+        components: []
+    })
+}, {
+    serializers: _.extend({
+        components: { deserialize: widgets.unpack_models }
+    }, widgets.WidgetModel.serializers)
+});
+
 let MeshModel = widgets.WidgetModel.extend({
     defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
         _model_name : 'MeshModel',
@@ -89,14 +123,14 @@ let MeshModel = widgets.WidgetModel.extend({
         vertices: [],
         faces: [],
         tetras: [],
-        components: []
+        data: []
     })
 }, {
     serializers: _.extend({
         vertices: serialization.float32array,
         faces: serialization.uint32array,
         tetras: serialization.uint32array,
-        components: { deserialize: widgets.unpack_models }
+        data: { deserialize: widgets.unpack_models }
     }, widgets.WidgetModel.serializers)
 });
 
