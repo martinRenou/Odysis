@@ -19,7 +19,7 @@ class DataBlock extends Block {
    * @param {Uint32Array} tetras - list of indices for the tetrahedrons
    * @param {Object} data - object containing the data. e.g. {'x': [0.1, 0.23, 1.23...], 'y':..., ...}
    */
-  constructor (scene, vertices, faces, tetras, data) {
+  constructor (scene, vertices, faces, data, tetras) {
     super(scene);
     this.blockType = 'DataBlock';
 
@@ -29,14 +29,15 @@ class DataBlock extends Block {
 
     this.coordArray = vertices;
     this.facesArray = faces;
-    this.tetraArray = tetras;
     this.data = data;
+    this.tetraArray = tetras || [];
   }
 
   /**
    * Method that initialize DataBlock
    */
   process () {
+    return new Promise((resolve, reject) => {
       this._processed = true;
 
       // Init attribute nodes for plug-in blocks node inputs
@@ -104,6 +105,9 @@ class DataBlock extends Block {
         this._wireframe = this.dispWireframe ? true : false;
       }
       this.wireframe = this._wireframe;
+
+      resolve();
+    });
   }
 
   /**

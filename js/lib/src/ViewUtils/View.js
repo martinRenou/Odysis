@@ -37,8 +37,6 @@ registerBlockType(Points);
 let IsoSurface = require('../BlockUtils/PlugIns/IsoSurface');
 registerBlockType(IsoSurface);
 
-let Mesh = require('./Mesh');
-
 /**
  * View class
  */
@@ -154,6 +152,24 @@ class View {
   }
 
   /**
+   * Create datablock method
+   */
+  addDataBlock (vertices, faces, data, tetras) {
+    let block = new DataBlock(this.scene, vertices, faces, data, tetras);
+    return block.process().then(
+      () => {
+        // On fulfilled
+        this.blocks.push(block);
+        return block;
+      },
+      () => {
+        // On reject
+        return false;
+      }
+    );
+  }
+
+  /**
    * Create block method
    * @param {string} blockType - Type of the block that you want to
    * create
@@ -226,7 +242,6 @@ class View {
 
 module.exports = {
   View: View,
-  Mesh: Mesh,
   registerBlockType: registerBlockType,
   blockTypeRegister: blockTypeRegister
 };

@@ -140,7 +140,9 @@ setup_args = {
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
-        'traittypes'
+        'traittypes',
+        'numpy',
+        'vtk'
     ],
     'packages': find_packages(),
     'zip_safe': False,

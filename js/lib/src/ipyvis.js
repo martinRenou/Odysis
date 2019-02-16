@@ -10,7 +10,7 @@ if (!Object.values) {
   object_values.shim();
 }
 
-let {View, Mesh} = require('./ViewUtils/View');
+let {View} = require('./ViewUtils/View');
 
 let views = new Map();
 
@@ -66,8 +66,13 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _model_module : 'ipyvis',
         _view_module : 'ipyvis',
         _model_module_version : ipyvis_version,
-        _view_module_version : ipyvis_version
+        _view_module_version : ipyvis_version,
+        mesh: undefined
     })
+}, {
+    serializers: _.extend({
+        mesh: { deserialize: widgets.unpack_models }
+    }, widgets.WidgetModel.serializers)
 });
 
 let SceneView = widgets.DOMWidgetView.extend({
@@ -75,6 +80,31 @@ let SceneView = widgets.DOMWidgetView.extend({
         this.el.classList.add('ipyvis-scene');
         let view = new View(this.el);
         views.set(this.el, view);
+
+        let mesh = this.model.get('mesh');
+        let mesh_data = mesh.get('data');
+        let data = {};
+        mesh_data.forEach((data_model) => {
+            let data_name = data_model.get('name');
+            data[data_name] = {};
+            data_model.get('components').forEach((component_model) => {
+                let component_name = component_model.get('name');
+                data[data_name][component_name] = {
+                    array: component_model.get('array'),
+                    min: component_model.get('min'),
+                    max: component_model.get('max')
+                };
+            });
+        });
+
+        return view.addDataBlock(
+            mesh.get('vertices'),
+            mesh.get('faces'),
+            data
+        ).then(((block) => {
+            this.dataBlock = block;
+            block.colored = true;
+        }));
     }
 });
 
@@ -87,11 +117,13 @@ let ComponentModel = widgets.WidgetModel.extend({
         _model_module_version : ipyvis_version,
         _view_module_version : ipyvis_version,
         name: '',
-        data: []
+        array: [],
+        min: undefined,
+        max: undefined
     })
 }, {
     serializers: _.extend({
-        data: { deserialize: serialization.float32array }
+        array: serialization.float32array
     }, widgets.WidgetModel.serializers)
 });
 
@@ -136,6 +168,8 @@ let MeshModel = widgets.WidgetModel.extend({
 
 module.exports = {
     SceneModel: SceneModel,
-    SceneView: SceneView.
+    SceneView: SceneView,
+    DataModel: DataModel,
+    ComponentModel: ComponentModel,
     MeshModel: MeshModel
 };
