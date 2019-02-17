@@ -72,7 +72,7 @@ class View {
       50,
       width / height,
       0.001,
-      20000
+      999999999
     );
     this.camera.position.z = 0.2;
 
