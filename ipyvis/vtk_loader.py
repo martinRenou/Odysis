@@ -1,10 +1,17 @@
 import os.path as osp
 from array import array
-import itertools as it
 import vtk
 
 FLOAT32 = 'f'
 UINT32 = 'I'
+
+# TODO Find a generic way to triangulate datasets
+# The bruteforce way would be to loop through the vtkCells
+# and using the triangulate method in order to generate tetrahedrons and triangles:
+# https://vtk.org/doc/nightly/html/classvtkCell.html#afece9607d75536910a3d0b154383d641
+#
+# We could also try to convert the grid to vtkPolyData and use vtkQuadricClustering
+# in order to simplify it
 
 
 def filter_grid(grid, filter_function):
@@ -16,15 +23,15 @@ def filter_grid(grid, filter_function):
     return filtered
 
 
-def triangle_filter(grid):
-    return filter_grid(grid, vtk.vtkTriangleFilter)
-
-
 def geometry_filter(grid):
     return filter_grid(grid, vtk.vtkGeometryFilter)
 
 
-def get_vertices(grid):
+def append_filter(grid):
+    return filter_grid(grid, vtk.vtkAppendFilter)
+
+
+def get_ugrid_vertices(grid):
     dtype = FLOAT32
     nb_vertices = grid.GetNumberOfPoints()
     vertices = grid.GetPoints()
@@ -37,13 +44,11 @@ def get_vertices(grid):
     return out
 
 
-def get_tetras(grid):
+def get_ugrid_tetras(grid):
     dtype = UINT32
     nb_cells = grid.GetNumberOfCells()
 
     out = array(dtype)
-    if not getattr(grid, 'GetCells', False):
-        return out
     cells = grid.GetCells()
     if not cells:
         return out
@@ -53,19 +58,15 @@ def get_tetras(grid):
         cells.GetNextCell(points)
         nb_points = points.GetNumberOfIds()
         # TODO: Support of other cell types, playing with indices to
-        # create tetrahedrons
-
-        # See https://www.math.u-bordeaux.fr/~mleguebe/docs/file-formats.pdf
-        # page 9 and 10 for cell types
-
+        # create tetrahedrons. By using vtkCell.triangulate?
         tetras = []
 
         # nb_points == 4 => TETRA
         if nb_points == 4:
-            tetras += it.imap(points.GetId, range(4))
+            tetras += map(points.GetId, range(4))
 
         # nb_points == 10 => QUADRATIC_TETRA
-        if nb_points == 10:
+        elif nb_points == 10:
             tetras += [points.GetId(0), points.GetId(4),
                        points.GetId(6), points.GetId(7)]
 
@@ -95,7 +96,7 @@ def get_tetras(grid):
     return out
 
 
-def get_faces(grid):
+def get_ugrid_faces(grid):
     dtype = UINT32
 
     filtered = geometry_filter(grid)
@@ -110,12 +111,17 @@ def get_faces(grid):
     for _ in range(nb_polys):
         polys.GetNextCell(points)
         nb_points = points.GetNumberOfIds()
-        out.extend(map(points.GetId, range(nb_points)))
+
+        if nb_points == 4:
+            out.extend([points.GetId(0), points.GetId(1), points.GetId(2)])
+            out.extend([points.GetId(0), points.GetId(2), points.GetId(3)])
+        else:
+            out.extend(map(points.GetId, range(nb_points)))
 
     return out
 
 
-def get_data(grid):
+def get_ugrid_data(grid):
     dtype = FLOAT32
     # Get data from the grid
     data = grid.GetPointData()
@@ -155,11 +161,11 @@ def get_data(grid):
     return out
 
 
-def get_untructured_grid_repr(grid):
-    tetras = get_tetras(grid)
-    vertices = get_vertices(grid)
-    data = get_data(grid)
-    faces = get_faces(grid)
+def get_ugrid_repr(grid):
+    tetras = get_ugrid_tetras(grid)
+    vertices = get_ugrid_vertices(grid)
+    data = get_ugrid_data(grid)
+    faces = get_ugrid_faces(grid)
 
     return {
         'vertices': vertices,
@@ -177,24 +183,32 @@ def load_vtk(filepath):
         reader.Update()
         grid = reader.GetOutput()
 
-        return get_untructured_grid_repr(grid)
+        return get_ugrid_repr(grid)
     elif file_extension == '.vtk':
         reader = vtk.vtkDataSetReader()
         reader.SetFileName(filepath)
         reader.Update()
 
         if reader.GetUnstructuredGridOutput() is not None:
-            return get_untructured_grid_repr(
+            return get_ugrid_repr(
                 reader.GetUnstructuredGridOutput()
             )
+
         elif reader.GetPolyDataOutput() is not None:
             raise RuntimeError('PolyData not supported (yet?)')
+
         elif reader.GetStructuredPointsOutput() is not None:
             raise RuntimeError('StructuredPoints not supported (yet?)')
+
         elif reader.GetStructuredGridOutput() is not None:
-            raise RuntimeError('StructuredGrid not supported (yet?)')
+            filtered = append_filter(reader.GetStructuredGridOutput())
+            return get_ugrid_repr(
+                filtered
+            )
+
         elif reader.GetRectilinearGridOutput() is not None:
             raise RuntimeError('RectilinearGrid not supported (yet?)')
+
         else:
             raise RuntimeError('Unrecognized data type')
     else:
