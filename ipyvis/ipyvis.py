@@ -5,11 +5,7 @@ from traittypes import Array
 from ipywidgets import widget_serialization, DOMWidget, Widget, register
 
 from .serialization import array_serialization
-from .vtk_loader import (
-    load_file,
-    get_faces, get_vertices, get_data,
-    FLOAT32, UINT32
-)
+from .vtk_loader import load_vtk, FLOAT32, UINT32
 
 ipyvis_version = '^0.1.0'
 
@@ -63,9 +59,9 @@ class Mesh(Widget):
 
     @staticmethod
     def from_vtk(path):
-        grid = load_file(path)
+        mesh = load_vtk(path)
 
-        grid_data = get_data(grid)
+        grid_data = mesh['data']
         data = []
         for key, value in grid_data.items():
             data.append(Data(
@@ -77,9 +73,9 @@ class Mesh(Widget):
             ))
 
         return Mesh(
-            vertices=get_vertices(grid),
-            faces=get_faces(grid),
-            tetras=array(UINT32),
+            vertices=mesh['vertices'],
+            faces=mesh['faces'],
+            tetras=mesh['tetras'],
             data=data
         )
 

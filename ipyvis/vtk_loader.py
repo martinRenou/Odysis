@@ -7,6 +7,23 @@ FLOAT32 = 'f'
 UINT32 = 'I'
 
 
+def filter_grid(grid, filter_function):
+    filter = filter_function()
+    filter.SetInputData(grid)
+    filter.Update()
+    filtered = filter.GetOutput()
+
+    return filtered
+
+
+def triangle_filter(grid):
+    return filter_grid(grid, vtk.vtkTriangleFilter)
+
+
+def geometry_filter(grid):
+    return filter_grid(grid, vtk.vtkGeometryFilter)
+
+
 def get_vertices(grid):
     dtype = FLOAT32
     nb_vertices = grid.GetNumberOfPoints()
@@ -81,10 +98,7 @@ def get_tetras(grid):
 def get_faces(grid):
     dtype = UINT32
 
-    geometry_filter = vtk.vtkGeometryFilter()
-    geometry_filter.SetInputData(grid)
-    geometry_filter.Update()
-    filtered = geometry_filter.GetOutput()
+    filtered = geometry_filter(grid)
 
     nb_polys = filtered.GetNumberOfPolys()
     polys = filtered.GetPolys()
@@ -141,18 +155,47 @@ def get_data(grid):
     return out
 
 
-def load_file(filepath):
-    """Load data grid contained into the file ``filepath``
-    and return the grid.
-    """
+def get_untructured_grid_repr(grid):
+    tetras = get_tetras(grid)
+    vertices = get_vertices(grid)
+    data = get_data(grid)
+    faces = get_faces(grid)
+
+    return {
+        'vertices': vertices,
+        'tetras': tetras,
+        'faces': faces,
+        'data': data
+    }
+
+
+def load_vtk(filepath):
     file_extension = osp.splitext(filepath)[1]
     if file_extension == '.vtu':
         reader = vtk.vtkXMLUnstructuredGridReader()
+        reader.SetFileName(filepath)
+        reader.Update()
+        grid = reader.GetOutput()
+
+        return get_untructured_grid_repr(grid)
     elif file_extension == '.vtk':
         reader = vtk.vtkDataSetReader()
+        reader.SetFileName(filepath)
+        reader.Update()
+
+        if reader.GetUnstructuredGridOutput() is not None:
+            return get_untructured_grid_repr(
+                reader.GetUnstructuredGridOutput()
+            )
+        elif reader.GetPolyDataOutput() is not None:
+            raise RuntimeError('PolyData not supported (yet?)')
+        elif reader.GetStructuredPointsOutput() is not None:
+            raise RuntimeError('StructuredPoints not supported (yet?)')
+        elif reader.GetStructuredGridOutput() is not None:
+            raise RuntimeError('StructuredGrid not supported (yet?)')
+        elif reader.GetRectilinearGridOutput() is not None:
+            raise RuntimeError('RectilinearGrid not supported (yet?)')
+        else:
+            raise RuntimeError('Unrecognized data type')
     else:
-        return False
-    reader.SetFileName(filepath)
-    reader.Update()
-    grid = reader.GetOutput()
-    return grid
+        raise RuntimeError('Unknown file type {}'.format(file_extension))
