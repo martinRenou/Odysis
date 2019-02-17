@@ -10,7 +10,7 @@ if (!Object.values) {
   object_values.shim();
 }
 
-let {View} = require('./ViewUtils/View');
+let {View, blockTypeRegister} = require('./ViewUtils/View');
 
 let views = new Map();
 
@@ -60,7 +60,7 @@ function remove_view (container) {
 }
 
 let SceneModel = widgets.DOMWidgetModel.extend({
-    defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
+    defaults: _.extend({}, widgets.DOMWidgetModel.prototype.defaults, {
         _model_name : 'SceneModel',
         _view_name : 'SceneView',
         _model_module : 'ipyvis',
@@ -68,11 +68,13 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _model_module_version : ipyvis_version,
         _view_module_version : ipyvis_version,
         mesh: undefined,
+        blocks: [],
         background_color: '#fff'
     })
 }, {
     serializers: _.extend({
-        mesh: { deserialize: widgets.unpack_models }
+        mesh: { deserialize: widgets.unpack_models },
+        blocks: { deserialize: widgets.unpack_models }
     }, widgets.WidgetModel.serializers)
 });
 
@@ -86,6 +88,7 @@ let SceneView = widgets.DOMWidgetView.extend({
         views.set(this.el, this.view);
 
         this.model_events();
+        this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
 
         let mesh = this.model.get('mesh');
         return this.view.addDataBlock(
@@ -93,14 +96,16 @@ let SceneView = widgets.DOMWidgetView.extend({
             mesh.get('faces'),
             this.get_data()
         ).then(((block) => {
-            this.dataBlock = block;
+            this.block = block;
             block.colored = true;
+
+            this.block_views.update(this.model.get('blocks'));
         }));
     },
 
     model_events: function() {
         this.model.on('change:mesh', () => {
-            this.view.removeBlock(this.dataBlock);
+            this.view.removeBlock(this.block);
 
             let mesh = this.model.get('mesh');
             return this.view.addDataBlock(
@@ -108,15 +113,33 @@ let SceneView = widgets.DOMWidgetView.extend({
                 mesh.get('faces'),
                 this.get_data()
             ).then(((block) => {
-                this.dataBlock = block;
+                this.block = block;
                 block.colored = true;
+
+                // Workaround for recreating the blocks
+                this.block_views.update([]);
+                this.block_views.update(this.model.get('blocks'));
             }));
         });
 
         this.model.on('change:background_color', () => {
-            console.log('Changed')
             this.view.renderer.setClearColor(this.model.get('background_color'));
         });
+
+        this.model.on('change:blocks', () => {
+            this.block_views.update(this.model.get('blocks'));
+        });
+    },
+
+    add_block: function (block_model) {
+        return this.create_child_view(block_model, {
+            scene_view: this,
+            parent_view: this
+        });
+    },
+
+    remove_block: function (block_view) {
+        block_view.remove();
     },
 
     get_data: function() {
@@ -141,7 +164,7 @@ let SceneView = widgets.DOMWidgetView.extend({
 });
 
 let ComponentModel = widgets.WidgetModel.extend({
-    defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
+    defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'ComponentModel',
         // _view_name : 'ComponentView',
         _model_module : 'ipyvis',
@@ -160,7 +183,7 @@ let ComponentModel = widgets.WidgetModel.extend({
 });
 
 let DataModel = widgets.WidgetModel.extend({
-    defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
+    defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'DataModel',
         // _view_name : 'DataView',
         _model_module : 'ipyvis',
@@ -177,7 +200,7 @@ let DataModel = widgets.WidgetModel.extend({
 });
 
 let MeshModel = widgets.WidgetModel.extend({
-    defaults: _.extend(widgets.WidgetModel.prototype.defaults(), {
+    defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'MeshModel',
         // _view_name : 'MeshView',
         _model_module : 'ipyvis',
@@ -198,10 +221,101 @@ let MeshModel = widgets.WidgetModel.extend({
     }, widgets.WidgetModel.serializers)
 });
 
+let BlockModel = widgets.WidgetModel.extend({
+    defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
+        _model_name : 'BlockModel',
+        _view_name : 'BlockView',
+        _model_module : 'ipyvis',
+        _view_module : 'ipyvis',
+        _model_module_version : ipyvis_version,
+        _view_module_version : ipyvis_version,
+        visible: true,
+        colored: true
+    })
+// }, {
+//     serializers: _.extend({
+//         blocks: { deserialize: widgets.unpack_models }
+//     }, widgets.WidgetModel.serializers)
+});
+
+let BlockView = widgets.WidgetView.extend({
+    initialize: function (parameters) {
+        BlockView.__super__.initialize.apply(this, arguments);
+        this.scene_view = this.options.scene_view;
+        this.parent_view = this.options.parent_view;
+    },
+
+    render: function () {
+        return Promise.resolve(this.create_block()).then(() => {
+            this.model_events();
+        });
+    },
+
+    model_events: function () {
+        this.model.on('change:visible', () => {
+            this.block.visible = this.model.get('visible');
+        });
+        this.model.on('change:colored', () => {
+            this.block.colored = this.model.get('colored');
+        });
+    }
+});
+
+let PluginBlockModel = BlockModel.extend({
+    defaults: _.extend({}, BlockModel.prototype.defaults, {
+        _model_name : 'PluginBlockModel',
+        _view_name : 'PluginBlockView',
+        input_data: '',
+        input_components: []
+    })
+});
+
+let PluginBlockView = BlockView.extend({
+    model_events: function () {
+        PluginBlockView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:input_data', () => {
+            this.block.inputData = this.model.get('input_data');
+        });
+        this.model.on('change:input_components', () => {
+            this.block.inputComponents = this.model.get('input_components');
+        });
+    }
+});
+
+let WarpModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'WarpModel',
+        _view_name : 'WarpView',
+        factor: 0.0
+    })
+});
+
+let WarpView = PluginBlockView.extend({
+    create_block: function () {
+        this.scene_view.view.addBlock('Warp', this.parent_view.block).then((block) => {
+            this.block = block;
+            this.block.warpFactor = this.model.get('factor');
+        });
+    },
+
+    model_events: function () {
+        WarpView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:factor', () => {
+            this.block.warpFactor = this.model.get('factor');
+        });
+    }
+});
+
 module.exports = {
     SceneModel: SceneModel,
     SceneView: SceneView,
     DataModel: DataModel,
     ComponentModel: ComponentModel,
-    MeshModel: MeshModel
+    MeshModel: MeshModel,
+    BlockModel: BlockModel,
+    BlockView: BlockView,
+    PluginBlockModel: PluginBlockModel,
+    PluginBlockView: PluginBlockView,
+    WarpModel: WarpModel,
+    WarpView: WarpView
 };

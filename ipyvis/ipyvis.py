@@ -1,6 +1,6 @@
 from array import array
 
-from traitlets import Unicode, List, Instance, Float
+from traitlets import Unicode, List, Instance, Float, Bool
 from traittypes import Array
 from ipywidgets import (
     widget_serialization,
@@ -85,6 +85,39 @@ class Mesh(Widget):
 
 
 @register
+class Block(Widget):
+    _view_name = Unicode('BlockView').tag(sync=True)
+    _model_name = Unicode('BlockModel').tag(sync=True)
+    _view_module = Unicode('ipyvis').tag(sync=True)
+    _model_module = Unicode('ipyvis').tag(sync=True)
+    _view_module_version = Unicode(ipyvis_version).tag(sync=True)
+    _model_module_version = Unicode(ipyvis_version).tag(sync=True)
+
+    visible = Bool(True).tag(sync=True)
+    colored = Bool(True).tag(sync=True)
+    # TODO position, rotation, scale, wireframe
+    # colormap_min, colormap_max, visualized_data, visualized_component
+
+
+@register
+class PluginBlock(Block):
+    _view_name = Unicode('PluginBlockView').tag(sync=True)
+    _model_name = Unicode('PluginBlockModel').tag(sync=True)
+
+    # TODO Validate data/components names and synchronise JavaScript -> Python
+    input_data = Unicode().tag(sync=True)
+    input_components = List().tag(sync=True)
+
+
+@register
+class Warp(PluginBlock):
+    _view_name = Unicode('WarpView').tag(sync=True)
+    _model_name = Unicode('WarpModel').tag(sync=True)
+
+    factor = Float(0.0).tag(sync=True)
+
+
+@register
 class Scene(DOMWidget):
     """A 3-D Scene widget."""
     _view_name = Unicode('SceneView').tag(sync=True)
@@ -95,5 +128,6 @@ class Scene(DOMWidget):
     _model_module_version = Unicode(ipyvis_version).tag(sync=True)
 
     mesh = Instance(Mesh).tag(sync=True, **widget_serialization)
+    blocks = List(Instance(Block)).tag(sync=True, **widget_serialization)
 
     background_color = Color('#fff').tag(sync=True)
