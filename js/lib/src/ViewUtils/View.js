@@ -52,12 +52,6 @@ class View {
 
     this.container = container;
 
-    if (opts['backgroundColor'] !== undefined) {
-      this.backgroundColor = opts['backgroundColor'];
-    } else {
-      this.backgroundColor = 0xeffaff;
-    }
-
     this._initScene();
     this._animate();
   }
@@ -94,7 +88,6 @@ class View {
     );
 
     this.renderer.setSize(width, height);
-    this.renderer.setClearColor(this.backgroundColor);
     this.renderer.localClippingEnabled = true;
 
     this.container.appendChild(this.renderer.domElement);

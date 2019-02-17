@@ -2,7 +2,11 @@ from array import array
 
 from traitlets import Unicode, List, Instance, Float
 from traittypes import Array
-from ipywidgets import widget_serialization, DOMWidget, Widget, register
+from ipywidgets import (
+    widget_serialization,
+    DOMWidget, Widget, register,
+    Color
+)
 
 from .serialization import array_serialization
 from .vtk_loader import load_vtk, FLOAT32, UINT32
@@ -91,3 +95,5 @@ class Scene(DOMWidget):
     _model_module_version = Unicode(ipyvis_version).tag(sync=True)
 
     mesh = Instance(Mesh).tag(sync=True, **widget_serialization)
+
+    background_color = Color('#fff').tag(sync=True)

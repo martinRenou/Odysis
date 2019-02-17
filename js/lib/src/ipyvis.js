@@ -67,7 +67,8 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _view_module : 'ipyvis',
         _model_module_version : ipyvis_version,
         _view_module_version : ipyvis_version,
-        mesh: undefined
+        mesh: undefined,
+        background_color: '#fff'
     })
 }, {
     serializers: _.extend({
@@ -79,6 +80,9 @@ let SceneView = widgets.DOMWidgetView.extend({
     render: function() {
         this.el.classList.add('ipyvis-scene');
         this.view = new View(this.el);
+
+        this.view.renderer.setClearColor(this.model.get('background_color'));
+
         views.set(this.el, this.view);
 
         this.model_events();
@@ -107,7 +111,12 @@ let SceneView = widgets.DOMWidgetView.extend({
                 this.dataBlock = block;
                 block.colored = true;
             }));
-        })
+        });
+
+        this.model.on('change:background_color', () => {
+            console.log('Changed')
+            this.view.renderer.setClearColor(this.model.get('background_color'));
+        });
     },
 
     get_data: function() {
