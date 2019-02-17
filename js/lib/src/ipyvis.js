@@ -271,6 +271,23 @@ let PluginBlockModel = BlockModel.extend({
 });
 
 let PluginBlockView = BlockView.extend({
+    render: function () {
+        PluginBlockView.__super__.render.apply(this, arguments).then(() => {
+            if (this.model.get('input_data')) {
+                this.block.inputData = this.model.get('input_data');
+            } else {
+                this.model.set('input_data', this.block.inputData);
+            }
+            if (this.model.get('input_components').length) {
+                // console.log(this.model.get('input_components'))
+                this.block.inputComponents = this.model.get('input_components');
+            } else {
+                this.model.set('input_components', this.block.inputComponents);
+            }
+            this.model.save_changes();
+        });
+    },
+
     model_events: function () {
         PluginBlockView.__super__.model_events.apply(this, arguments);
         this.model.on('change:input_data', () => {

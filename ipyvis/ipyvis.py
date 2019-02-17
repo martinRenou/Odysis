@@ -1,6 +1,6 @@
 from array import array
 
-from traitlets import Unicode, List, Instance, Float, Bool
+from traitlets import Unicode, List, Instance, Float, Int, Bool, Union
 from traittypes import Array
 from ipywidgets import (
     widget_serialization,
@@ -106,7 +106,7 @@ class PluginBlock(Block):
 
     # TODO Validate data/components names and synchronise JavaScript -> Python
     input_data = Unicode().tag(sync=True)
-    input_components = List().tag(sync=True)
+    input_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
 
 
 @register
