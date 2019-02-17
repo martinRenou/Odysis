@@ -78,9 +78,39 @@ let SceneModel = widgets.DOMWidgetModel.extend({
 let SceneView = widgets.DOMWidgetView.extend({
     render: function() {
         this.el.classList.add('ipyvis-scene');
-        let view = new View(this.el);
-        views.set(this.el, view);
+        this.view = new View(this.el);
+        views.set(this.el, this.view);
 
+        this.model_events();
+
+        let mesh = this.model.get('mesh');
+        return this.view.addDataBlock(
+            mesh.get('vertices'),
+            mesh.get('faces'),
+            this.get_data()
+        ).then(((block) => {
+            this.dataBlock = block;
+            block.colored = true;
+        }));
+    },
+
+    model_events: function() {
+        this.model.on('change:mesh', () => {
+            this.view.removeBlock(this.dataBlock);
+
+            let mesh = this.model.get('mesh');
+            return this.view.addDataBlock(
+                mesh.get('vertices'),
+                mesh.get('faces'),
+                this.get_data()
+            ).then(((block) => {
+                this.dataBlock = block;
+                block.colored = true;
+            }));
+        })
+    },
+
+    get_data: function() {
         let mesh = this.model.get('mesh');
         let mesh_data = mesh.get('data');
         let data = {};
@@ -97,14 +127,7 @@ let SceneView = widgets.DOMWidgetView.extend({
             });
         });
 
-        return view.addDataBlock(
-            mesh.get('vertices'),
-            mesh.get('faces'),
-            data
-        ).then(((block) => {
-            this.dataBlock = block;
-            block.colored = true;
-        }));
+        return data;
     }
 });
 
