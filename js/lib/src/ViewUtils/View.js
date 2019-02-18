@@ -74,12 +74,8 @@ class View {
     this.scene.add(this.camera);
 
     // light
-    let ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
+    let ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
     this.scene.add(ambientLight);
-
-    let pointLight1 = new THREE.PointLight(0xffffff, 0.4, 0);
-    pointLight1.position.set(50, 50, 50);
-    this.scene.add(pointLight1);
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer(
