@@ -11,7 +11,7 @@ from ipywidgets import (
 from .serialization import array_serialization
 from .vtk_loader import load_vtk, FLOAT32, UINT32
 
-ipyvis_version = '^0.1.0'
+odysis_version = '^0.1.0'
 
 
 @register
@@ -19,10 +19,10 @@ class Component(Widget):
     """A data component widget."""
     # _view_name = Unicode('ComponentView').tag(sync=True)
     _model_name = Unicode('ComponentModel').tag(sync=True)
-    _view_module = Unicode('ipyvis').tag(sync=True)
-    _model_module = Unicode('ipyvis').tag(sync=True)
-    _view_module_version = Unicode(ipyvis_version).tag(sync=True)
-    _model_module_version = Unicode(ipyvis_version).tag(sync=True)
+    _view_module = Unicode('odysis').tag(sync=True)
+    _model_module = Unicode('odysis').tag(sync=True)
+    _view_module_version = Unicode(odysis_version).tag(sync=True)
+    _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     name = Unicode().tag(sync=True)
     # TODO: validate data as being 1-D array, and validate dtype
@@ -36,10 +36,10 @@ class Data(Widget):
     """A data widget."""
     # _view_name = Unicode('DataView').tag(sync=True)
     _model_name = Unicode('DataModel').tag(sync=True)
-    _view_module = Unicode('ipyvis').tag(sync=True)
-    _model_module = Unicode('ipyvis').tag(sync=True)
-    _view_module_version = Unicode(ipyvis_version).tag(sync=True)
-    _model_module_version = Unicode(ipyvis_version).tag(sync=True)
+    _view_module = Unicode('odysis').tag(sync=True)
+    _model_module = Unicode('odysis').tag(sync=True)
+    _view_module_version = Unicode(odysis_version).tag(sync=True)
+    _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     name = Unicode().tag(sync=True)
     components = List(Instance(Component)).tag(sync=True, **widget_serialization)
@@ -50,10 +50,10 @@ class Mesh(Widget):
     """A 3-D Mesh widget."""
     # _view_name = Unicode('MeshView').tag(sync=True)
     _model_name = Unicode('MeshModel').tag(sync=True)
-    _view_module = Unicode('ipyvis').tag(sync=True)
-    _model_module = Unicode('ipyvis').tag(sync=True)
-    _view_module_version = Unicode(ipyvis_version).tag(sync=True)
-    _model_module_version = Unicode(ipyvis_version).tag(sync=True)
+    _view_module = Unicode('odysis').tag(sync=True)
+    _model_module = Unicode('odysis').tag(sync=True)
+    _view_module_version = Unicode(odysis_version).tag(sync=True)
+    _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     # TODO: validate vertices/faces/tetras as being 1-D array, and validate dtype
     vertices = Array(default_value=array(FLOAT32)).tag(sync=True, **array_serialization)
@@ -88,10 +88,10 @@ class Mesh(Widget):
 class Block(Widget):
     _view_name = Unicode('BlockView').tag(sync=True)
     _model_name = Unicode('BlockModel').tag(sync=True)
-    _view_module = Unicode('ipyvis').tag(sync=True)
-    _model_module = Unicode('ipyvis').tag(sync=True)
-    _view_module_version = Unicode(ipyvis_version).tag(sync=True)
-    _model_module_version = Unicode(ipyvis_version).tag(sync=True)
+    _view_module = Unicode('odysis').tag(sync=True)
+    _model_module = Unicode('odysis').tag(sync=True)
+    _view_module_version = Unicode(odysis_version).tag(sync=True)
+    _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     visible = Bool(True).tag(sync=True)
     colored = Bool(True).tag(sync=True)
@@ -122,10 +122,10 @@ class Scene(DOMWidget):
     """A 3-D Scene widget."""
     _view_name = Unicode('SceneView').tag(sync=True)
     _model_name = Unicode('SceneModel').tag(sync=True)
-    _view_module = Unicode('ipyvis').tag(sync=True)
-    _model_module = Unicode('ipyvis').tag(sync=True)
-    _view_module_version = Unicode(ipyvis_version).tag(sync=True)
-    _model_module_version = Unicode(ipyvis_version).tag(sync=True)
+    _view_module = Unicode('odysis').tag(sync=True)
+    _model_module = Unicode('odysis').tag(sync=True)
+    _view_module_version = Unicode(odysis_version).tag(sync=True)
+    _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     mesh = Instance(Mesh).tag(sync=True, **widget_serialization)
     blocks = List(Instance(Block)).tag(sync=True, **widget_serialization)

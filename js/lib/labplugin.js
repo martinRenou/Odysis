@@ -1,14 +1,14 @@
-var ipyvis = require('./index');
+var odysis = require('./index');
 var base = require('@jupyter-widgets/base');
 
 module.exports = {
-  id: 'ipyvis',
+  id: 'odysis',
   requires: [base.IJupyterWidgetRegistry],
   activate: function(app, widgets) {
       widgets.registerWidget({
-          name: 'ipyvis',
-          version: ipyvis.version,
-          exports: ipyvis
+          name: 'odysis',
+          version: odysis.version,
+          exports: odysis
       });
   },
   autoStart: true

@@ -1,2 +1,2 @@
-recursive-include ipyvis/static *.*
-include ipyvis.json
+recursive-include odysis/static *.*
+include odysis.json

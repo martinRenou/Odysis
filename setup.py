@@ -66,8 +66,8 @@ class NPM(Command):
     node_modules = os.path.join(node_root, 'node_modules')
 
     targets = [
-        os.path.join(here, 'ipyvis', 'static', 'extension.js'),
-        os.path.join(here, 'ipyvis', 'static', 'index.js')
+        os.path.join(here, 'odysis', 'static', 'extension.js'),
+        os.path.join(here, 'odysis', 'static', 'index.js')
     ]
 
     def initialize_options(self):
@@ -121,22 +121,22 @@ class NPM(Command):
         update_package_data(self.distribution)
 
 version_ns = {}
-with open(os.path.join(here, 'ipyvis', '_version.py')) as f:
+with open(os.path.join(here, 'odysis', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 setup_args = {
-    'name': 'ipyvis',
+    'name': 'odysis',
     'version': version_ns['__version__'],
     'description': 'Widgets library for 3-D mesh analysis',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/ipyvis', [
-            'ipyvis/static/extension.js',
-            'ipyvis/static/index.js',
-            'ipyvis/static/index.js.map',
+        ('share/jupyter/nbextensions/odysis', [
+            'odysis/static/extension.js',
+            'odysis/static/index.js',
+            'odysis/static/index.js.map',
         ],),
-        ('etc/jupyter/nbconfig/notebook.d/' ,['ipyvis.json'])
+        ('etc/jupyter/nbconfig/notebook.d/' ,['odysis.json'])
     ],
     'install_requires': [
         'ipywidgets>=7.0.0',
@@ -155,7 +155,7 @@ setup_args = {
 
     'author': 'Martin Renou',
     'author_email': 'martin.renou@gmail.com',
-    'url': 'https://github.com/martinRenou/ipyvis',
+    'url': 'https://github.com/martinRenou/odysis',
     'keywords': [
         'ipython',
         'jupyter',

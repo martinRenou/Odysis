@@ -2,7 +2,7 @@ let widgets = require('@jupyter-widgets/base');
 let _ = require('lodash');
 let object_values = require('object.values');
 require('./three');
-require('./ipyvis.css');
+require('./odysis.css');
 let serialization = require('./serialization');
 
 
@@ -14,7 +14,7 @@ let {View, blockTypeRegister} = require('./ViewUtils/View');
 
 let views = new Map();
 
-let ipyvis_version = '0.1.0';
+let odysis_version = '0.1.0';
 
 /**
  * Getter for view
@@ -63,10 +63,10 @@ let SceneModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend({}, widgets.DOMWidgetModel.prototype.defaults, {
         _model_name : 'SceneModel',
         _view_name : 'SceneView',
-        _model_module : 'ipyvis',
-        _view_module : 'ipyvis',
-        _model_module_version : ipyvis_version,
-        _view_module_version : ipyvis_version,
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
         mesh: undefined,
         blocks: [],
         background_color: '#fff'
@@ -80,7 +80,7 @@ let SceneModel = widgets.DOMWidgetModel.extend({
 
 let SceneView = widgets.DOMWidgetView.extend({
     render: function() {
-        this.el.classList.add('ipyvis-scene');
+        this.el.classList.add('odysis-scene');
         this.view = new View(this.el);
 
         this.view.renderer.setClearColor(this.model.get('background_color'));
@@ -167,10 +167,10 @@ let ComponentModel = widgets.WidgetModel.extend({
     defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'ComponentModel',
         // _view_name : 'ComponentView',
-        _model_module : 'ipyvis',
-        _view_module : 'ipyvis',
-        _model_module_version : ipyvis_version,
-        _view_module_version : ipyvis_version,
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
         name: '',
         array: [],
         min: undefined,
@@ -186,10 +186,10 @@ let DataModel = widgets.WidgetModel.extend({
     defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'DataModel',
         // _view_name : 'DataView',
-        _model_module : 'ipyvis',
-        _view_module : 'ipyvis',
-        _model_module_version : ipyvis_version,
-        _view_module_version : ipyvis_version,
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
         name: '',
         components: []
     })
@@ -203,10 +203,10 @@ let MeshModel = widgets.WidgetModel.extend({
     defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'MeshModel',
         // _view_name : 'MeshView',
-        _model_module : 'ipyvis',
-        _view_module : 'ipyvis',
-        _model_module_version : ipyvis_version,
-        _view_module_version : ipyvis_version,
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
         vertices: [],
         faces: [],
         tetras: [],
@@ -225,10 +225,10 @@ let BlockModel = widgets.WidgetModel.extend({
     defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'BlockModel',
         _view_name : 'BlockView',
-        _model_module : 'ipyvis',
-        _view_module : 'ipyvis',
-        _model_module_version : ipyvis_version,
-        _view_module_version : ipyvis_version,
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
         visible: true,
         colored: true
     })

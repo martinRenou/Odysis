@@ -1,4 +1,4 @@
-- To release a new version of ipyvis on PyPI:
+- To release a new version of odysis on PyPI:
 
 Update _version.py (set release version, remove 'dev')
 git add the _version.py file and git commit
@@ -10,7 +10,7 @@ git add and git commit
 git push
 git push --tags
 
-- To release a new version of ipyvis on NPM:
+- To release a new version of odysis on NPM:
 
 ```
 # clean out the `dist` and `node_modules` directories
