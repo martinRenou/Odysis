@@ -176,9 +176,9 @@ class View {
           this.blocks.push(newBlock);
           return newBlock;
         },
-        () => {
+        (error) => {
           // On reject
-          return false;
+          throw new Error(error);
         }
       );
     } else {

@@ -68,13 +68,13 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _model_module_version : odysis_version,
         _view_module_version : odysis_version,
         mesh: undefined,
-        blocks: [],
+        _blocks: [],
         background_color: '#fff'
     })
 }, {
     serializers: _.extend({
         mesh: { deserialize: widgets.unpack_models },
-        blocks: { deserialize: widgets.unpack_models }
+        _blocks: { deserialize: widgets.unpack_models }
     }, widgets.WidgetModel.serializers)
 });
 
@@ -100,7 +100,7 @@ let SceneView = widgets.DOMWidgetView.extend({
                 this.block = block;
                 block.colored = true;
 
-                this.block_views.update(this.model.get('blocks'));
+                this.block_views.update(this.model.get('_blocks'));
             }));
         });
     },
@@ -120,7 +120,7 @@ let SceneView = widgets.DOMWidgetView.extend({
 
                 // Workaround for recreating the blocks
                 this.block_views.update([]);
-                this.block_views.update(this.model.get('blocks'));
+                this.block_views.update(this.model.get('_blocks'));
             }));
         });
 
@@ -128,8 +128,8 @@ let SceneView = widgets.DOMWidgetView.extend({
             this.view.renderer.setClearColor(this.model.get('background_color'));
         });
 
-        this.model.on('change:blocks', () => {
-            this.block_views.update(this.model.get('blocks'));
+        this.model.on('change:_blocks', () => {
+            this.block_views.update(this.model.get('_blocks'));
         });
     },
 
@@ -234,10 +234,6 @@ let BlockModel = widgets.WidgetModel.extend({
         visible: true,
         colored: true
     })
-// }, {
-//     serializers: _.extend({
-//         blocks: { deserialize: widgets.unpack_models }
-//     }, widgets.WidgetModel.serializers)
 });
 
 let BlockView = widgets.WidgetView.extend({
@@ -268,23 +264,29 @@ let PluginBlockModel = BlockModel.extend({
         _model_name : 'PluginBlockModel',
         _view_name : 'PluginBlockView',
         input_data: '',
-        input_components: []
+        input_components: [],
+        _blocks: []
     })
+}, {
+    serializers: _.extend({
+        _blocks: { deserialize: widgets.unpack_models }
+    }, widgets.WidgetModel.serializers)
 });
 
 let PluginBlockView = BlockView.extend({
     render: function () {
         PluginBlockView.__super__.render.apply(this, arguments).then(() => {
+            this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
+
             if (this.model.get('input_data')) {
                 this.block.inputData = this.model.get('input_data');
             } else {
-                this.model.set('input_data', this.block.inputData);
+                this.model.set('input_data', this.block.inputData || '');
             }
             if (this.model.get('input_components').length) {
-                // console.log(this.model.get('input_components'))
                 this.block.inputComponents = this.model.get('input_components');
             } else {
-                this.model.set('input_components', this.block.inputComponents);
+                this.model.set('input_components', this.block.inputComponents || []);
             }
             this.model.save_changes();
         });
@@ -298,7 +300,21 @@ let PluginBlockView = BlockView.extend({
         this.model.on('change:input_components', () => {
             this.block.inputComponents = this.model.get('input_components');
         });
-    }
+        this.model.on('change:_blocks', () => {
+            this.block_views.update(this.model.get('_blocks'));
+        });
+    },
+
+    add_block: function (block_model) {
+        return this.create_child_view(block_model, {
+            scene_view: this.scene_view,
+            parent_view: this
+        });
+    },
+
+    remove_block: function (block_view) {
+        block_view.remove();
+    },
 });
 
 let WarpModel = PluginBlockModel.extend({
@@ -325,6 +341,35 @@ let WarpView = PluginBlockView.extend({
     }
 });
 
+let ClipModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'ClipModel',
+        _view_name : 'ClipView',
+        plane_position: 0.0,
+        plane_normal: [1, 0, 0]
+    })
+});
+
+let ClipView = PluginBlockView.extend({
+    create_block: function () {
+        this.scene_view.view.addBlock('ClipPlane', this.parent_view.block).then((block) => {
+            this.block = block;
+            this.block.planePosition = this.model.get('plane_position');
+            this.block.planeNormal = this.model.get('plane_normal');
+        });
+    },
+
+    model_events: function () {
+        ClipView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:plane_position', () => {
+            this.block.planePosition = this.model.get('plane_position');
+        });
+        this.model.on('change:plane_normal', () => {
+            this.block.planeNormal = this.model.get('plane_normal');
+        });
+    }
+});
+
 module.exports = {
     SceneModel: SceneModel,
     SceneView: SceneView,
@@ -336,5 +381,7 @@ module.exports = {
     PluginBlockModel: PluginBlockModel,
     PluginBlockView: PluginBlockView,
     WarpModel: WarpModel,
-    WarpView: WarpView
+    WarpView: WarpView,
+    ClipModel: ClipModel,
+    ClipView: ClipView,
 };

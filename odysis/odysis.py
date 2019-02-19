@@ -84,8 +84,12 @@ class Mesh(Widget):
         )
 
 
+class BlockType():
+    pass
+
+
 @register
-class Block(Widget):
+class Block(Widget, BlockType):
     _view_name = Unicode('BlockView').tag(sync=True)
     _model_name = Unicode('BlockModel').tag(sync=True)
     _view_module = Unicode('odysis').tag(sync=True)
@@ -93,10 +97,18 @@ class Block(Widget):
     _view_module_version = Unicode(odysis_version).tag(sync=True)
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
+    _blocks = List(Instance(BlockType)).tag(sync=True, **widget_serialization)
+
     visible = Bool(True).tag(sync=True)
     colored = Bool(True).tag(sync=True)
     # TODO position, rotation, scale, wireframe
     # colormap_min, colormap_max, visualized_data, visualized_component
+
+    def add(self, block):
+        self._blocks = list([b for b in self._blocks] + [block])
+
+    def remove(self, block):
+        self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
 
 
 @register
@@ -118,7 +130,16 @@ class Warp(PluginBlock):
 
 
 @register
-class Scene(DOMWidget):
+class Clip(PluginBlock):
+    _view_name = Unicode('ClipView').tag(sync=True)
+    _model_name = Unicode('ClipModel').tag(sync=True)
+
+    plane_normal = List(Float()).tag(sync=True)
+    plane_position = Float().tag(sync=True)
+
+
+@register
+class Scene(DOMWidget, Block):
     """A 3-D Scene widget."""
     _view_name = Unicode('SceneView').tag(sync=True)
     _model_name = Unicode('SceneModel').tag(sync=True)
@@ -128,6 +149,5 @@ class Scene(DOMWidget):
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     mesh = Instance(Mesh).tag(sync=True, **widget_serialization)
-    blocks = List(Instance(Block)).tag(sync=True, **widget_serialization)
 
     background_color = Color('#fff').tag(sync=True)
