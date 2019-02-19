@@ -80,27 +80,29 @@ let SceneModel = widgets.DOMWidgetModel.extend({
 
 let SceneView = widgets.DOMWidgetView.extend({
     render: function() {
-        this.el.classList.add('odysis-scene');
-        this.view = new View(this.el);
+        this.displayed.then(() => {
+            this.el.classList.add('odysis-scene');
+            this.view = new View(this.el);
 
-        this.view.renderer.setClearColor(this.model.get('background_color'));
+            this.view.renderer.setClearColor(this.model.get('background_color'));
 
-        views.set(this.el, this.view);
+            views.set(this.el, this.view);
 
-        this.model_events();
-        this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
+            this.model_events();
+            this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
 
-        let mesh = this.model.get('mesh');
-        return this.view.addDataBlock(
-            mesh.get('vertices'),
-            mesh.get('faces'),
-            this.get_data()
-        ).then(((block) => {
-            this.block = block;
-            block.colored = true;
+            let mesh = this.model.get('mesh');
+            return this.view.addDataBlock(
+                mesh.get('vertices'),
+                mesh.get('faces'),
+                this.get_data()
+            ).then(((block) => {
+                this.block = block;
+                block.colored = true;
 
-            this.block_views.update(this.model.get('blocks'));
-        }));
+                this.block_views.update(this.model.get('blocks'));
+            }));
+        });
     },
 
     model_events: function() {
