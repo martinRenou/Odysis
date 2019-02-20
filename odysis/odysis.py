@@ -6,7 +6,7 @@ from ipywidgets import (
     widget_serialization,
     DOMWidget, Widget, register,
     Color,
-    FloatSlider, FloatText, link, VBox
+    FloatRangeSlider, FloatSlider, FloatText, link, VBox
 )
 
 from .serialization import array_serialization
@@ -185,6 +185,21 @@ class Threshold(PluginBlock):
 
     lower_bound = Float().tag(sync=True)
     upper_bound = Float().tag(sync=True)
+
+    def interact(self):
+        slider = FloatRangeSlider(
+            description='Bounds',
+            min=self.lower_bound,
+            max=self.upper_bound,
+            value=[self.lower_bound, self.upper_bound]
+        )
+        slider.observe(self._on_slider_change, 'value')
+
+        return VBox((slider, ))
+
+    def _on_slider_change(self, change):
+        self.lower_bound = change['new'][0]
+        self.upper_bound = change['new'][1]
 
 
 @register
