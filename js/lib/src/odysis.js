@@ -245,6 +245,28 @@ let BlockView = widgets.WidgetView.extend({
 
     render: function () {
         return Promise.resolve(this.create_block()).then(() => {
+            if (this.model.get('visualized_data')) {
+                this.block.visualizedData = this.model.get('visualized_data');
+            } else {
+                this.model.set('visualized_data', this.block.visualizedData || '');
+            }
+            if (this.model.get('visualized_components').length) {
+                this.block.visualizedComponents = this.model.get('visualized_components');
+            } else {
+                this.model.set('visualized_components', this.block.visualizedComponents || []);
+            }
+            if (this.model.get('colormap_min')) {
+                this.block.colorMapMin = this.model.get('colormap_min');
+            } else {
+                this.model.set('colormap_min', this.block.colorMapMin);
+            }
+            if (this.model.get('colormap_max').length) {
+                this.block.colorMapMax = this.model.get('colormap_max');
+            } else {
+                this.model.set('colormap_max', this.block.colorMapMax);
+            }
+            this.model.save_changes();
+
             this.model_events();
         });
     },
@@ -255,6 +277,18 @@ let BlockView = widgets.WidgetView.extend({
         });
         this.model.on('change:colored', () => {
             this.block.colored = this.model.get('colored');
+        });
+        this.model.on('change:visualized_data', () => {
+            this.block.visualizedData = this.model.get('visualized_data');
+        });
+        this.model.on('change:visualized_components', () => {
+            this.block.visualizedComponents = this.model.get('visualized_components');
+        });
+        this.model.on('change:colormap_max', () => {
+            this.block.colorMapMax = this.model.get('colormap_max');
+        });
+        this.model.on('change:colormap_min', () => {
+            this.block.colorMapMin = this.model.get('colormap_min');
         });
     }
 });
@@ -327,7 +361,7 @@ let WarpModel = PluginBlockModel.extend({
 
 let WarpView = PluginBlockView.extend({
     create_block: function () {
-        this.scene_view.view.addBlock('Warp', this.parent_view.block).then((block) => {
+        return this.scene_view.view.addBlock('Warp', this.parent_view.block).then((block) => {
             this.block = block;
             this.block.warpFactor = this.model.get('factor');
         });
@@ -352,7 +386,7 @@ let ClipModel = PluginBlockModel.extend({
 
 let ClipView = PluginBlockView.extend({
     create_block: function () {
-        this.scene_view.view.addBlock('ClipPlane', this.parent_view.block).then((block) => {
+        return this.scene_view.view.addBlock('ClipPlane', this.parent_view.block).then((block) => {
             this.block = block;
             this.block.planePosition = this.model.get('plane_position');
             this.block.planeNormal = this.model.get('plane_normal');

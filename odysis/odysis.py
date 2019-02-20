@@ -102,7 +102,10 @@ class Block(Widget, BlockType):
     visible = Bool(True).tag(sync=True)
     colored = Bool(True).tag(sync=True)
     # TODO position, rotation, scale, wireframe
-    # colormap_min, colormap_max, visualized_data, visualized_component
+    colormap_min = Float().tag(sync=True)
+    colormap_max = Float().tag(sync=True)
+    visualized_data = Unicode().tag(sync=True)
+    visualized_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
 
     def add(self, block):
         self._blocks = list([b for b in self._blocks] + [block])
