@@ -156,8 +156,26 @@ class Clip(PluginBlock):
     _view_name = Unicode('ClipView').tag(sync=True)
     _model_name = Unicode('ClipModel').tag(sync=True)
 
+    plane_position = Float(0.0).tag(sync=True)
+    plane_position_min = Float(-10)
+    plane_position_max = Float(10)
     plane_normal = List(Float()).tag(sync=True)
-    plane_position = Float().tag(sync=True)
+
+    def interact(self):
+        slider = FloatSlider(
+            description='Plane position',
+            min=self.plane_position_min,
+            max=self.plane_position_max,
+            value=0.0
+        )
+        slider_min = FloatText(description='Min', value=self.plane_position_min)
+        slider_max = FloatText(description='Max', value=self.plane_position_max)
+        link((self, 'plane_position'), (slider, 'value'))
+        link((self, 'plane_position_min'), (slider, 'min'))
+        link((self, 'plane_position_min'), (slider_min, 'value'))
+        link((self, 'plane_position_max'), (slider, 'max'))
+        link((self, 'plane_position_max'), (slider_max, 'value'))
+        return VBox((slider, slider_min, slider_max))
 
 
 @register
