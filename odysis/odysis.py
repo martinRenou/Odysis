@@ -5,7 +5,8 @@ from traittypes import Array
 from ipywidgets import (
     widget_serialization,
     DOMWidget, Widget, register,
-    Color
+    Color,
+    FloatSlider, FloatText, link, VBox
 )
 
 from .serialization import array_serialization
@@ -130,6 +131,24 @@ class Warp(PluginBlock):
     _model_name = Unicode('WarpModel').tag(sync=True)
 
     factor = Float(0.0).tag(sync=True)
+    factor_min = Float(-10.0)
+    factor_max = Float(10.0)
+
+    def interact(self):
+        slider = FloatSlider(
+            description='Warp factor',
+            min=self.factor_min,
+            max=self.factor_max,
+            value=0.0
+        )
+        slider_min = FloatText(description='Min', value=self.factor_min)
+        slider_max = FloatText(description='Max', value=self.factor_max)
+        link((self, 'factor'), (slider, 'value'))
+        link((self, 'factor_min'), (slider, 'min'))
+        link((self, 'factor_min'), (slider_min, 'value'))
+        link((self, 'factor_max'), (slider, 'max'))
+        link((self, 'factor_max'), (slider_max, 'value'))
+        return VBox((slider, slider_min, slider_max))
 
 
 @register
