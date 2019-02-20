@@ -309,7 +309,7 @@ let PluginBlockModel = BlockModel.extend({
 
 let PluginBlockView = BlockView.extend({
     render: function () {
-        PluginBlockView.__super__.render.apply(this, arguments).then(() => {
+        return PluginBlockView.__super__.render.apply(this, arguments).then(() => {
             this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
 
             if (this.model.get('input_data')) {
