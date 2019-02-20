@@ -142,6 +142,15 @@ class Clip(PluginBlock):
 
 
 @register
+class Threshold(PluginBlock):
+    _view_name = Unicode('ThresholdView').tag(sync=True)
+    _model_name = Unicode('ThresholdModel').tag(sync=True)
+
+    lower_bound = Float().tag(sync=True)
+    upper_bound = Float().tag(sync=True)
+
+
+@register
 class Scene(DOMWidget, Block):
     """A 3-D Scene widget."""
     _view_name = Unicode('SceneView').tag(sync=True)

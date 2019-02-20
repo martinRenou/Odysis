@@ -404,6 +404,45 @@ let ClipView = PluginBlockView.extend({
     }
 });
 
+let ThresholdModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'ThresholdModel',
+        _view_name : 'ThresholdView',
+        lower_bound: undefined,
+        upper_bound: undefined
+    })
+});
+
+let ThresholdView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('Threshold', this.parent_view.block).then((block) => {
+            this.block = block;
+
+            if (this.model.get('lower_bound')) {
+                this.block.lowerBound = this.model.get('lower_bound');
+            } else {
+                this.model.set('lower_bound', this.block.lowerBound);
+            }
+            if (this.model.get('upper_bound').length) {
+                this.block.upperBound = this.model.get('upper_bound');
+            } else {
+                this.model.set('upper_bound', this.block.upperBound);
+            }
+            this.model.save_changes();
+        });
+    },
+
+    model_events: function () {
+        ThresholdView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:lower_bound', () => {
+            this.block.lowerBound = this.model.get('lower_bound');
+        });
+        this.model.on('change:upper_bound', () => {
+            this.block.upperBound = this.model.get('upper_bound');
+        });
+    }
+});
+
 module.exports = {
     SceneModel: SceneModel,
     SceneView: SceneView,
@@ -418,4 +457,6 @@ module.exports = {
     WarpView: WarpView,
     ClipModel: ClipModel,
     ClipView: ClipView,
+    ThresholdModel: ThresholdModel,
+    ThresholdView: ThresholdView,
 };
