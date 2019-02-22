@@ -95,7 +95,8 @@ let SceneView = widgets.DOMWidgetView.extend({
             return this.view.addDataBlock(
                 mesh.get('vertices'),
                 mesh.get('faces'),
-                this.get_data()
+                this.get_data(),
+                mesh.get('tetras')
             ).then(((block) => {
                 this.block = block;
                 block.colored = true;
@@ -113,7 +114,8 @@ let SceneView = widgets.DOMWidgetView.extend({
             return this.view.addDataBlock(
                 mesh.get('vertices'),
                 mesh.get('faces'),
-                this.get_data()
+                this.get_data(),
+                mesh.get('tetras')
             ).then(((block) => {
                 this.block = block;
                 block.colored = true;
