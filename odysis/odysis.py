@@ -135,6 +135,7 @@ class Warp(PluginBlock):
     factor_max = Float(10.0)
 
     def interact(self):
+        # TODO Update the step of the slider
         slider = FloatSlider(
             description='Warp factor',
             min=self.factor_min,
@@ -162,6 +163,7 @@ class Clip(PluginBlock):
     plane_normal = List(Float()).tag(sync=True)
 
     def interact(self):
+        # TODO Update the step of the slider
         slider = FloatSlider(
             description='Plane position',
             min=self.plane_position_min,
