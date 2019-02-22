@@ -46,52 +46,49 @@ def get_ugrid_vertices(grid):
 
 def get_ugrid_tetras(grid):
     dtype = UINT32
-    nb_cells = grid.GetNumberOfCells()
+
+    # vtkCellIterator
+    iterator = grid.NewCellIterator()
+    iterator.InitTraversal()
 
     out = array(dtype)
-    cells = grid.GetCells()
-    if not cells:
-        return out
-    points = vtk.vtkIdList()
+    while not iterator.IsDoneWithTraversal():
+        # Ignore 0D, 1D and 2D cells
+        if iterator.GetCellDimension() != 3:
+            iterator.GoToNextCell()
+            continue
 
-    for _ in range(nb_cells):
-        cells.GetNextCell(points)
-        nb_points = points.GetNumberOfIds()
         # TODO: Support of other cell types, playing with indices to
         # create tetrahedrons. By using vtkCell.triangulate?
-        tetras = []
+        if iterator.GetCellType() == vtk.VTK_TETRA:
+            out.extend(iterator.GetPointIds())
+        elif iterator.GetCellType() == vtk.VTK_QUADRATIC_TETRA:
+            points = iterator.GetPointIds()
+            out.extend([points.GetId(0), points.GetId(4),
+                       points.GetId(6), points.GetId(7)])
 
-        # nb_points == 4 => TETRA
-        if nb_points == 4:
-            tetras += map(points.GetId, range(4))
+            out.extend([points.GetId(1), points.GetId(4),
+                       points.GetId(5), points.GetId(8)])
 
-        # nb_points == 10 => QUADRATIC_TETRA
-        elif nb_points == 10:
-            tetras += [points.GetId(0), points.GetId(4),
-                       points.GetId(6), points.GetId(7)]
+            out.extend([points.GetId(2), points.GetId(5),
+                       points.GetId(6), points.GetId(9)])
 
-            tetras += [points.GetId(1), points.GetId(4),
-                       points.GetId(5), points.GetId(8)]
+            out.extend([points.GetId(3), points.GetId(7),
+                       points.GetId(8), points.GetId(9)])
 
-            tetras += [points.GetId(2), points.GetId(5),
-                       points.GetId(6), points.GetId(9)]
+            out.extend([points.GetId(6), points.GetId(4),
+                       points.GetId(7), points.GetId(8)])
 
-            tetras += [points.GetId(3), points.GetId(7),
-                       points.GetId(8), points.GetId(9)]
+            out.extend([points.GetId(4), points.GetId(5),
+                       points.GetId(6), points.GetId(8)])
 
-            tetras += [points.GetId(6), points.GetId(4),
-                       points.GetId(7), points.GetId(8)]
+            out.extend([points.GetId(5), points.GetId(8),
+                       points.GetId(9), points.GetId(6)])
 
-            tetras += [points.GetId(4), points.GetId(5),
-                       points.GetId(6), points.GetId(8)]
+            out.extend([points.GetId(6), points.GetId(7),
+                       points.GetId(8), points.GetId(9)])
 
-            tetras += [points.GetId(5), points.GetId(8),
-                       points.GetId(9), points.GetId(6)]
-
-            tetras += [points.GetId(6), points.GetId(7),
-                       points.GetId(8), points.GetId(9)]
-
-        out.extend(tetras)
+        iterator.GoToNextCell()
 
     return out
 
