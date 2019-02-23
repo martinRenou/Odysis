@@ -230,6 +230,11 @@ let BlockView = widgets.WidgetView.extend({
     remove_block: function (block_view) {
         block_view.remove();
     },
+
+    remove: function () {
+        BlockView.__super__.remove.apply(this, arguments);
+        this.scene_view.remove(this.block);
+    }
 });
 
 let MeshModel = BlockModel.extend({
@@ -284,6 +289,8 @@ let MeshView = BlockView.extend({
         this.model.on('change:data', () => {
             this.block.updateData(this.get_data());
         });
+        // TODO Update tetras, update faces?
+        // TODO Try to update vertices and data at the same time?
     },
 
     get_data: function() {
