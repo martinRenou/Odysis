@@ -177,6 +177,11 @@ class Warp(PluginBlock):
         link((self, 'factor_max'), (slider_max, 'value'))
         return VBox((slider, slider_min, slider_max))
 
+    def apply(self, block):
+        if isinstance(block, Clip):
+            raise RuntimeError('Clip cannot be computed after a Warp effect')
+        super(Clip, self).apply(block)
+
 
 @register
 class Clip(PluginBlock):
