@@ -276,6 +276,16 @@ let MeshView = BlockView.extend({
         }));
     },
 
+    model_events: function () {
+        MeshView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:vertices', () => {
+            this.block.updateVertices(this.model.get('vertices'));
+        });
+        this.model.on('change:data', () => {
+            this.block.updateData(this.get_data());
+        });
+    },
+
     get_data: function() {
         let mesh_data = this.model.get('data');
         let data = {};

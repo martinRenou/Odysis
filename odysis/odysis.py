@@ -79,6 +79,21 @@ class Block(Widget, BlockType):
         self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
 
 
+def _grid_data_to_data_widget(grid_data):
+    data = []
+    for key, value in grid_data.items():
+        d = Data(
+            name=key,
+            components=[
+                Component(name=comp_name, array=comp['array'], min=comp['min'], max=comp['max'])
+                for comp_name, comp in value.items()
+            ]
+        )
+        data.append(d)
+
+    return data
+
+
 @register
 class Mesh(Block):
     """A 3-D Mesh widget."""
@@ -103,25 +118,27 @@ class Mesh(Block):
         grid.ComputeBounds()
         bounding_box = grid.GetBounds()
 
-        grid_data = get_ugrid_data(grid)
-        data = []
-        for key, value in grid_data.items():
-            d = Data(
-                name=key,
-                components=[
-                    Component(name=comp_name, array=comp['array'], min=comp['min'], max=comp['max'])
-                    for comp_name, comp in value.items()
-                ]
-            )
-            data.append(d)
-
         return Mesh(
             vertices=get_ugrid_vertices(grid),
             faces=get_ugrid_faces(grid),
             tetras=get_ugrid_tetras(grid),
-            data=data,
+            data=_grid_data_to_data_widget(get_ugrid_data(grid)),
             bounding_box=bounding_box
         )
+
+    def reload(self, path,
+               reload_vertices=False, reload_faces=False,
+               reload_data=True, reload_tetras=False):
+        grid = load_vtk(path)
+
+        if reload_vertices:
+            self.vertices = get_ugrid_vertices(grid)
+        if reload_faces:
+            self.faces = get_ugrid_faces(grid)
+        if reload_tetras:
+            self.tetras = get_ugrid_tetras(grid)
+        if reload_data:
+            self.data = _grid_data_to_data_widget(get_ugrid_data(grid))
 
 
 @register

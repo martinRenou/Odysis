@@ -619,7 +619,6 @@ class Block {
       d++;
       let c = 0;
 
-      let components = [];
       Object.values(data).forEach((component) => {
         c++;
         // In shaders, component 3 of data 4 will be named 'scivid4c3'
@@ -631,8 +630,6 @@ class Block {
           shaderName,
           'float'
         );
-
-        components.push(component);
       });
 
       // Get Magnitude min and max

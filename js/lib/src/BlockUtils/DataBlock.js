@@ -114,8 +114,8 @@ class DataBlock extends Block {
    * Initialization of buffer geometry
    */
   initBufferGeometry () {
-    let coordAttribute = new THREE.BufferAttribute(this.coordArray, 3);
-    let facesAttribute = new THREE.BufferAttribute(this.facesArray, 1);
+    this.coordAttribute = new THREE.BufferAttribute(this.coordArray, 3);
+    this.facesAttribute = new THREE.BufferAttribute(this.facesArray, 1);
 
     // Add dataAttributes
     // For each data
@@ -137,9 +137,46 @@ class DataBlock extends Block {
       });
     });
 
-    this._bufferGeometry.addAttribute('position', coordAttribute);
-    this._bufferGeometry.setIndex(facesAttribute);
+    this._bufferGeometry.addAttribute('position', this.coordAttribute);
+    this._bufferGeometry.setIndex(this.facesAttribute);
     this._bufferGeometry.center();
+  }
+
+  /**
+   * Update of buffer geometry
+   */
+  updateVertices (newValue) {
+    this.coordAttribute.set(newValue);
+    this.coordAttribute.needsUpdate = true;
+    this._bufferGeometry.center();
+    this.updateChildrenGeometry();
+  }
+
+  updateData (newValue) {
+      Object.keys(this.data).forEach((dataName) => {
+        // For each component
+        Object.keys(this.data[dataName]).forEach((componentName) => {
+          let component = this.data[dataName][componentName];
+
+          if (!component.shaderName.endsWith('Magnitude')) {
+            let newComponent = newValue[dataName][componentName];
+            component.initialArray = newComponent.array;
+            component.min = newComponent.min;
+            component.min = newComponent.max;
+
+            let dataAttr = this._bufferGeometry.getAttribute(component.shaderName);
+            dataAttr.set(newComponent.array);
+            dataAttr.needsUpdate = true;
+          }
+        });
+      });
+      this.updateChildrenGeometry();
+  }
+
+  updateChildrenGeometry () {
+    this.childrenBlocks.forEach((child) => {
+      child.updateGeometry();
+    });
   }
 }
 
