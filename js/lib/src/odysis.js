@@ -101,6 +101,14 @@ let SceneView = widgets.DOMWidgetView.extend({
                 this.block = block;
                 block.colored = true;
 
+                // Compute scale
+                let bb = mesh.get('bounding_box');
+                let dx = bb[1] - bb[0];
+                let dy = bb[3] - bb[2];
+                let dz = bb[5] - bb[4];
+                let scale = 3 / (dx + dy + dz);
+                block.scale = [scale, scale, scale];
+
                 this.block_views.update(this.model.get('_blocks'));
             }));
         });
@@ -119,6 +127,14 @@ let SceneView = widgets.DOMWidgetView.extend({
             ).then(((block) => {
                 this.block = block;
                 block.colored = true;
+
+                // Compute scale
+                let bb = mesh.get('bounding_box');
+                let dx = bb[1] - bb[0];
+                let dy = bb[3] - bb[2];
+                let dz = bb[5] - bb[4];
+                let scale = 3 / (dx + dy + dz);
+                block.scale = [scale, scale, scale];
 
                 // Workaround for recreating the blocks
                 this.block_views.update([]);
@@ -214,7 +230,8 @@ let MeshModel = widgets.WidgetModel.extend({
         vertices: [],
         faces: [],
         tetras: [],
-        data: []
+        data: [],
+        bounding_box: []
     })
 }, {
     serializers: _.extend({

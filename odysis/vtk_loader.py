@@ -158,20 +158,6 @@ def get_ugrid_data(grid):
     return out
 
 
-def get_ugrid_repr(grid):
-    tetras = get_ugrid_tetras(grid)
-    vertices = get_ugrid_vertices(grid)
-    data = get_ugrid_data(grid)
-    faces = get_ugrid_faces(grid)
-
-    return {
-        'vertices': vertices,
-        'tetras': tetras,
-        'faces': faces,
-        'data': data
-    }
-
-
 def load_vtk(filepath):
     file_extension = osp.splitext(filepath)[1]
     if file_extension == '.vtu':
@@ -180,16 +166,14 @@ def load_vtk(filepath):
         reader.Update()
         grid = reader.GetOutput()
 
-        return get_ugrid_repr(grid)
+        return grid
     elif file_extension == '.vtk':
         reader = vtk.vtkDataSetReader()
         reader.SetFileName(filepath)
         reader.Update()
 
         if reader.GetUnstructuredGridOutput() is not None:
-            return get_ugrid_repr(
-                reader.GetUnstructuredGridOutput()
-            )
+            return reader.GetUnstructuredGridOutput()
 
         elif reader.GetPolyDataOutput() is not None:
             raise RuntimeError('PolyData not supported (yet?)')
@@ -199,9 +183,7 @@ def load_vtk(filepath):
 
         elif reader.GetStructuredGridOutput() is not None:
             filtered = append_filter(reader.GetStructuredGridOutput())
-            return get_ugrid_repr(
-                filtered
-            )
+            return filtered
 
         elif reader.GetRectilinearGridOutput() is not None:
             raise RuntimeError('RectilinearGrid not supported (yet?)')

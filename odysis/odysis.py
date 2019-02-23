@@ -10,7 +10,10 @@ from ipywidgets import (
 )
 
 from .serialization import array_serialization
-from .vtk_loader import load_vtk, FLOAT32, UINT32
+from .vtk_loader import (
+    load_vtk, FLOAT32, UINT32,
+    get_ugrid_vertices, get_ugrid_faces, get_ugrid_tetras, get_ugrid_data
+)
 
 odysis_version = '^0.1.0'
 
@@ -61,27 +64,33 @@ class Mesh(Widget):
     faces = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
     tetras = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
     data = List(Instance(Data), default_value=[]).tag(sync=True, **widget_serialization)
+    bounding_box = List().tag(sync=True)
 
     @staticmethod
     def from_vtk(path):
-        mesh = load_vtk(path)
+        grid = load_vtk(path)
 
-        grid_data = mesh['data']
+        grid.ComputeBounds()
+        bounding_box = grid.GetBounds()
+
+        grid_data = get_ugrid_data(grid)
         data = []
         for key, value in grid_data.items():
-            data.append(Data(
+            d = Data(
                 name=key,
                 components=[
                     Component(name=comp_name, array=comp['array'], min=comp['min'], max=comp['max'])
                     for comp_name, comp in value.items()
                 ]
-            ))
+            )
+            data.append(d)
 
         return Mesh(
-            vertices=mesh['vertices'],
-            faces=mesh['faces'],
-            tetras=mesh['tetras'],
-            data=data
+            vertices=get_ugrid_vertices(grid),
+            faces=get_ugrid_faces(grid),
+            tetras=get_ugrid_tetras(grid),
+            data=data,
+            bounding_box=bounding_box
         )
 
 
