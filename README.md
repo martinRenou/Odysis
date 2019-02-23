@@ -27,11 +27,13 @@ Most of those features (color mapping, warp effect, threshold, clipping...) are 
 Installation
 ------------
 
-With conda:
+**Odysis is an early developer preview. Features and implementation are subject to change.**
+
+With conda: (coming soon)
 
     $ conda install -c conda-forge odysis
 
-With pip:
+With pip: (coming soon)
 
     $ pip install odysis
     $ jupyter nbextension enable --py --sys-prefix odysis
