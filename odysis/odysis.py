@@ -49,10 +49,40 @@ class Data(Widget):
     components = List(Instance(Component)).tag(sync=True, **widget_serialization)
 
 
+class BlockType():
+    pass
+
+
 @register
-class Mesh(Widget):
+class Block(Widget, BlockType):
+    _view_name = Unicode('BlockView').tag(sync=True)
+    _model_name = Unicode('BlockModel').tag(sync=True)
+    _view_module = Unicode('odysis').tag(sync=True)
+    _model_module = Unicode('odysis').tag(sync=True)
+    _view_module_version = Unicode(odysis_version).tag(sync=True)
+    _model_module_version = Unicode(odysis_version).tag(sync=True)
+
+    _blocks = List(Instance(BlockType)).tag(sync=True, **widget_serialization)
+
+    visible = Bool(True).tag(sync=True)
+    colored = Bool(True).tag(sync=True)
+    # TODO position, rotation, scale, wireframe
+    colormap_min = Float().tag(sync=True)
+    colormap_max = Float().tag(sync=True)
+    visualized_data = Unicode().tag(sync=True)
+    visualized_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
+
+    def apply(self, block):
+        self._blocks = list([b for b in self._blocks] + [block])
+
+    def remove(self, block):
+        self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
+
+
+@register
+class Mesh(Block):
     """A 3-D Mesh widget."""
-    # _view_name = Unicode('MeshView').tag(sync=True)
+    _view_name = Unicode('MeshView').tag(sync=True)
     _model_name = Unicode('MeshModel').tag(sync=True)
     _view_module = Unicode('odysis').tag(sync=True)
     _model_module = Unicode('odysis').tag(sync=True)
@@ -92,36 +122,6 @@ class Mesh(Widget):
             data=data,
             bounding_box=bounding_box
         )
-
-
-class BlockType():
-    pass
-
-
-@register
-class Block(Widget, BlockType):
-    _view_name = Unicode('BlockView').tag(sync=True)
-    _model_name = Unicode('BlockModel').tag(sync=True)
-    _view_module = Unicode('odysis').tag(sync=True)
-    _model_module = Unicode('odysis').tag(sync=True)
-    _view_module_version = Unicode(odysis_version).tag(sync=True)
-    _model_module_version = Unicode(odysis_version).tag(sync=True)
-
-    _blocks = List(Instance(BlockType)).tag(sync=True, **widget_serialization)
-
-    visible = Bool(True).tag(sync=True)
-    colored = Bool(True).tag(sync=True)
-    # TODO position, rotation, scale, wireframe
-    colormap_min = Float().tag(sync=True)
-    colormap_max = Float().tag(sync=True)
-    visualized_data = Unicode().tag(sync=True)
-    visualized_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
-
-    def add(self, block):
-        self._blocks = list([b for b in self._blocks] + [block])
-
-    def remove(self, block):
-        self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
 
 
 @register
@@ -214,7 +214,7 @@ class Threshold(PluginBlock):
 
 
 @register
-class Scene(DOMWidget, Block):
+class Scene(DOMWidget):
     """A 3-D Scene widget."""
     _view_name = Unicode('SceneView').tag(sync=True)
     _model_name = Unicode('SceneModel').tag(sync=True)

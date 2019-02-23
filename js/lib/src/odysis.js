@@ -68,13 +68,11 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _model_module_version : odysis_version,
         _view_module_version : odysis_version,
         mesh: undefined,
-        _blocks: [],
         background_color: '#fff'
     })
 }, {
     serializers: _.extend({
-        mesh: { deserialize: widgets.unpack_models },
-        _blocks: { deserialize: widgets.unpack_models }
+        mesh: { deserialize: widgets.unpack_models }
     }, widgets.WidgetModel.serializers)
 });
 
@@ -88,98 +86,20 @@ let SceneView = widgets.DOMWidgetView.extend({
 
             views.set(this.el, this.view);
 
-            this.model_events();
-            this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
-
-            let mesh = this.model.get('mesh');
-            return this.view.addDataBlock(
-                mesh.get('vertices'),
-                mesh.get('faces'),
-                this.get_data(),
-                mesh.get('tetras')
-            ).then(((block) => {
-                this.block = block;
-                block.colored = true;
-
-                // Compute scale
-                let bb = mesh.get('bounding_box');
-                let dx = bb[1] - bb[0];
-                let dy = bb[3] - bb[2];
-                let dz = bb[5] - bb[4];
-                let scale = 3 / (dx + dy + dz);
-                block.scale = [scale, scale, scale];
-
-                this.block_views.update(this.model.get('_blocks'));
-            }));
+            this.create_child_view(this.model.get('mesh'), {
+                scene_view: this,
+                parent_view: this
+            }).then(() => {
+                this.model_events();
+            });
         });
     },
 
+
     model_events: function() {
-        this.model.on('change:mesh', () => {
-            this.view.removeBlock(this.block);
-
-            let mesh = this.model.get('mesh');
-            return this.view.addDataBlock(
-                mesh.get('vertices'),
-                mesh.get('faces'),
-                this.get_data(),
-                mesh.get('tetras')
-            ).then(((block) => {
-                this.block = block;
-                block.colored = true;
-
-                // Compute scale
-                let bb = mesh.get('bounding_box');
-                let dx = bb[1] - bb[0];
-                let dy = bb[3] - bb[2];
-                let dz = bb[5] - bb[4];
-                let scale = 3 / (dx + dy + dz);
-                block.scale = [scale, scale, scale];
-
-                // Workaround for recreating the blocks
-                this.block_views.update([]);
-                this.block_views.update(this.model.get('_blocks'));
-            }));
-        });
-
         this.model.on('change:background_color', () => {
             this.view.renderer.setClearColor(this.model.get('background_color'));
         });
-
-        this.model.on('change:_blocks', () => {
-            this.block_views.update(this.model.get('_blocks'));
-        });
-    },
-
-    add_block: function (block_model) {
-        return this.create_child_view(block_model, {
-            scene_view: this,
-            parent_view: this
-        });
-    },
-
-    remove_block: function (block_view) {
-        block_view.remove();
-    },
-
-    get_data: function() {
-        let mesh = this.model.get('mesh');
-        let mesh_data = mesh.get('data');
-        let data = {};
-        mesh_data.forEach((data_model) => {
-            let data_name = data_model.get('name');
-            data[data_name] = {};
-            data_model.get('components').forEach((component_model) => {
-                let component_name = component_model.get('name');
-                data[data_name][component_name] = {
-                    array: component_model.get('array'),
-                    min: component_model.get('min'),
-                    max: component_model.get('max')
-                };
-            });
-        });
-
-        return data;
     }
 });
 
@@ -219,29 +139,6 @@ let DataModel = widgets.WidgetModel.extend({
     }, widgets.WidgetModel.serializers)
 });
 
-let MeshModel = widgets.WidgetModel.extend({
-    defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
-        _model_name : 'MeshModel',
-        // _view_name : 'MeshView',
-        _model_module : 'odysis',
-        _view_module : 'odysis',
-        _model_module_version : odysis_version,
-        _view_module_version : odysis_version,
-        vertices: [],
-        faces: [],
-        tetras: [],
-        data: [],
-        bounding_box: []
-    })
-}, {
-    serializers: _.extend({
-        vertices: serialization.float32array,
-        faces: serialization.uint32array,
-        tetras: serialization.uint32array,
-        data: { deserialize: widgets.unpack_models }
-    }, widgets.WidgetModel.serializers)
-});
-
 let BlockModel = widgets.WidgetModel.extend({
     defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'BlockModel',
@@ -251,8 +148,13 @@ let BlockModel = widgets.WidgetModel.extend({
         _model_module_version : odysis_version,
         _view_module_version : odysis_version,
         visible: true,
-        colored: true
+        colored: true,
+        _blocks: []
     })
+}, {
+    serializers: _.extend({
+        _blocks: { deserialize: widgets.unpack_models }
+    }, widgets.WidgetModel.serializers)
 });
 
 let BlockView = widgets.WidgetView.extend({
@@ -260,6 +162,8 @@ let BlockView = widgets.WidgetView.extend({
         BlockView.__super__.initialize.apply(this, arguments);
         this.scene_view = this.options.scene_view;
         this.parent_view = this.options.parent_view;
+
+        this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
     },
 
     render: function () {
@@ -287,6 +191,8 @@ let BlockView = widgets.WidgetView.extend({
             this.model.save_changes();
 
             this.model_events();
+
+            this.block_views.update(this.model.get('_blocks'));
         });
     },
 
@@ -309,6 +215,84 @@ let BlockView = widgets.WidgetView.extend({
         this.model.on('change:colormap_min', () => {
             this.block.colorMapMin = this.model.get('colormap_min');
         });
+        this.model.on('change:_blocks', () => {
+            this.block_views.update(this.model.get('_blocks'));
+        });
+    },
+
+    add_block: function (block_model) {
+        return this.create_child_view(block_model, {
+            scene_view: this.scene_view,
+            parent_view: this
+        });
+    },
+
+    remove_block: function (block_view) {
+        block_view.remove();
+    },
+});
+
+let MeshModel = BlockModel.extend({
+    defaults: _.extend({}, BlockModel.prototype.defaults, {
+        _model_name : 'MeshModel',
+        _view_name : 'MeshView',
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
+        vertices: [],
+        faces: [],
+        tetras: [],
+        data: [],
+        bounding_box: []
+    })
+}, {
+    serializers: _.extend({
+        vertices: serialization.float32array,
+        faces: serialization.uint32array,
+        tetras: serialization.uint32array,
+        data: { deserialize: widgets.unpack_models }
+    }, BlockModel.serializers)
+});
+
+let MeshView = BlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addDataBlock(
+            this.model.get('vertices'),
+            this.model.get('faces'),
+            this.get_data(),
+            this.model.get('tetras')
+        ).then(((block) => {
+            this.block = block;
+            block.colored = true;
+
+            // Compute scale
+            let bb = this.model.get('bounding_box');
+            let dx = bb[1] - bb[0];
+            let dy = bb[3] - bb[2];
+            let dz = bb[5] - bb[4];
+            let scale = 3 / (dx + dy + dz);
+            block.scale = [scale, scale, scale];
+        }));
+    },
+
+    get_data: function() {
+        let mesh_data = this.model.get('data');
+        let data = {};
+        mesh_data.forEach((data_model) => {
+            let data_name = data_model.get('name');
+            data[data_name] = {};
+            data_model.get('components').forEach((component_model) => {
+                let component_name = component_model.get('name');
+                data[data_name][component_name] = {
+                    array: component_model.get('array'),
+                    min: component_model.get('min'),
+                    max: component_model.get('max')
+                };
+            });
+        });
+
+        return data;
     }
 });
 
@@ -329,8 +313,6 @@ let PluginBlockModel = BlockModel.extend({
 let PluginBlockView = BlockView.extend({
     render: function () {
         return PluginBlockView.__super__.render.apply(this, arguments).then(() => {
-            this.block_views = new widgets.ViewList(this.add_block, this.remove_block, this);
-
             if (this.model.get('input_data')) {
                 this.block.inputData = this.model.get('input_data');
             } else {
@@ -353,20 +335,6 @@ let PluginBlockView = BlockView.extend({
         this.model.on('change:input_components', () => {
             this.block.inputComponents = this.model.get('input_components');
         });
-        this.model.on('change:_blocks', () => {
-            this.block_views.update(this.model.get('_blocks'));
-        });
-    },
-
-    add_block: function (block_model) {
-        return this.create_child_view(block_model, {
-            scene_view: this.scene_view,
-            parent_view: this
-        });
-    },
-
-    remove_block: function (block_view) {
-        block_view.remove();
     },
 });
 
@@ -468,6 +436,7 @@ module.exports = {
     DataModel: DataModel,
     ComponentModel: ComponentModel,
     MeshModel: MeshModel,
+    MeshView: MeshView,
     BlockModel: BlockModel,
     BlockView: BlockView,
     PluginBlockModel: PluginBlockModel,
