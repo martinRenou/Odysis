@@ -10,19 +10,19 @@ Features
 
 Odysis has many features including:
 
-- VTK loader for displaying your computation results in the Jupyter Notebook
-- Structured and Unstructured grids support
+- **VTK loader** for displaying your computation results in the Jupyter Notebook
+- **Structured and Unstructured grids** support
 - 2-D cell based meshes support (quads, triangles...) as well as 3-D cell based meshes support (tetrahedrons, quadratic tetrahedrons...)
-- Animations
-- Color mapping, with color maps like "viridis", "magma", "inferno"...
-- Warp effect
-- IsoSurface computation
-- Threshold effect (for visualizing only the parts that are inside of a range of data)
-- Clip effect
-- Slice computation
-- Vector fields visualization
+- **Animations**
+- **Color mapping**, with color maps like "viridis", "magma", "inferno"...
+- **Warp** effect
+- **IsoSurface** computation
+- **Threshold** effect (for visualizing only the parts that are inside of a range of data)
+- **Clip** effect
+- **Slice** computation
+- **Vector fields** visualization
 
-Most of those features (color mapping, warp effect, threshold, clipping...) are very fast, because they are done on the GPU. Features that are not done on the GPU like IsoSurface or Slice are done using Octrees or binary tree algorithms.
+Most of those features (color mapping, warp effect, threshold, clipping...) are **very fast**, because they are done on the GPU. Features that are not done on the GPU like IsoSurface or Slice are done using Octrees or binary tree algorithms.
 
 Installation
 ------------
