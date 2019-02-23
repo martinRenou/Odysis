@@ -1,6 +1,6 @@
 from array import array
 
-from traitlets import Unicode, List, Instance, Float, Int, Bool, Union
+from traitlets import Unicode, List, Instance, Float, Int, Bool, Union, Enum
 from traittypes import Array
 from ipywidgets import (
     widget_serialization,
@@ -180,7 +180,7 @@ class Warp(PluginBlock):
     def apply(self, block):
         if isinstance(block, Clip):
             raise RuntimeError('Clip cannot be computed after a Warp effect')
-        super(Clip, self).apply(block)
+        super(Warp, self).apply(block)
 
 
 @register
@@ -209,6 +209,18 @@ class Clip(PluginBlock):
         link((self, 'plane_position_max'), (slider, 'max'))
         link((self, 'plane_position_max'), (slider_max, 'value'))
         return VBox((slider, slider_min, slider_max))
+
+
+@register
+class VectorField(PluginBlock):
+    _view_name = Unicode('VectorFieldView').tag(sync=True)
+    _model_name = Unicode('VectorFieldModel').tag(sync=True)
+
+    length_factor = Float(1.).tag(sync=True)
+    width = Int(1).tag(sync=True)
+    percentage_vectors = Float(1.).tag(sync=True)
+    distribution = Enum(('ordered', 'random'), default_value='ordered').tag(sync=True)
+    mode = Enum(('volume', 'surface'), default_value='volume').tag(sync=True)
 
 
 @register

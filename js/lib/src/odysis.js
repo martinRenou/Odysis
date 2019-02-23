@@ -183,7 +183,7 @@ let BlockView = widgets.WidgetView.extend({
             } else {
                 this.model.set('colormap_min', this.block.colorMapMin);
             }
-            if (this.model.get('colormap_max').length) {
+            if (this.model.get('colormap_max')) {
                 this.block.colorMapMax = this.model.get('colormap_max');
             } else {
                 this.model.set('colormap_max', this.block.colorMapMax);
@@ -379,6 +379,50 @@ let WarpView = PluginBlockView.extend({
     }
 });
 
+let VectorFieldModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'VectorFieldModel',
+        _view_name : 'VectorFieldView',
+        length_factor: 1.0,
+        width: 1,
+        percentage_vectors: 1.0,
+        distribution: 'ordered',
+        mode: 'volume'
+    })
+});
+
+let VectorFieldView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('VectorField', this.parent_view.block).then((block) => {
+            this.block = block;
+            this.block.lengthFactor = this.model.get('length_factor');
+            this.block.vectorsWidth = this.model.get('width');
+            this.block.pcVectors = this.model.get('percentage_vectors');
+            this.block.distribution = this.model.get('distribution');
+            this.block.mode = this.model.get('mode');
+        });
+    },
+
+    model_events: function () {
+        VectorFieldView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:length_factor', () => {
+            this.block.lengthFactor = this.model.get('length_factor');
+        });
+        this.model.on('change:width', () => {
+            this.block.vectorsWidth = this.model.get('width');
+        });
+        this.model.on('change:percentage_vectors', () => {
+            this.block.pcVectors = this.model.get('percentage_vectors');
+        });
+        this.model.on('change:distribution', () => {
+            this.block.distribution = this.model.get('distribution');
+        });
+        this.model.on('change:mode', () => {
+            this.block.mode = this.model.get('mode');
+        });
+    }
+});
+
 let ClipModel = PluginBlockModel.extend({
     defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
         _model_name : 'ClipModel',
@@ -460,6 +504,8 @@ module.exports = {
     PluginBlockView: PluginBlockView,
     WarpModel: WarpModel,
     WarpView: WarpView,
+    VectorFieldModel: VectorFieldModel,
+    VectorFieldView: VectorFieldView,
     ClipModel: ClipModel,
     ClipView: ClipView,
     ThresholdModel: ThresholdModel,

@@ -754,7 +754,8 @@ class Block {
           : THREE.FlatShading;
       } else {
         mesh.material.wireframe = false;
-        mesh.material.shading = THREE.SmoothShading;
+        // Why ?
+        // mesh.material.shading = THREE.SmoothShading;
       }
 
       // Get isoColor node
