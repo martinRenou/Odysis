@@ -1,12 +1,17 @@
 from array import array
 
-from traitlets import Unicode, List, Instance, Float, Int, Bool, Union, Enum
+from traitlets import (
+    Unicode, List, Instance, Float,
+    Int, Bool, Union, Enum, observe
+)
 from traittypes import Array
 from ipywidgets import (
     widget_serialization,
     DOMWidget, Widget, register,
     Color,
-    FloatRangeSlider, FloatSlider, FloatText, link, VBox
+    Dropdown, FloatRangeSlider, FloatSlider, FloatText, Label,
+    link,
+    VBox, HBox
 )
 
 from .serialization import array_serialization
@@ -73,9 +78,13 @@ class Block(Widget, BlockType):
     visualized_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
 
     def apply(self, block):
+        if block._parent_block is not None:
+            raise RuntimeError('Cannot apply the same effect at different places')
+        block._parent_block = self
         self._blocks = list([b for b in self._blocks] + [block])
 
     def remove(self, block):
+        block._parent_block = None
         self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
 
 
@@ -146,15 +155,107 @@ class PluginBlock(Block):
     _view_name = Unicode('PluginBlockView').tag(sync=True)
     _model_name = Unicode('PluginBlockModel').tag(sync=True)
 
+    _parent_block = Instance(BlockType, allow_none=True, default_value=None)
+
+    _available_input_data = List([])
+    _available_input_components = List([])
+    _input_data_dim = Int(3)
+
     # TODO Validate data/components names and synchronise JavaScript -> Python
-    input_data = Unicode().tag(sync=True)
-    input_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
+    input_data = Unicode(allow_none=True, default_value=None).tag(sync=True)
+    input_components = List(Union((Unicode(), Int()))).tag(sync=True)
+
+    def _get_data(self, parent):
+        block = parent
+        while not isinstance(block, Mesh):
+            block = block._parent_block
+        return block.data
+
+    @observe('_parent_block')
+    def _update_parent(self, change):
+        parent = change['new']
+        if parent is None:
+            return
+
+        data = self._get_data(parent)
+
+        self._available_input_data = [d.name for d in data]
+        self.input_data = self._available_input_data[0]
+
+    @observe('input_data')
+    def _update_available_components(self, change):
+        data = self._get_data(self._parent_block)
+        for d in data:
+            if d.name == change['new']:
+                current_data = d
+        self._available_input_components = [c.name for c in current_data.components] + [0]
+
+    @observe('_available_input_components')
+    def _update_input_components(self, change):
+        available_components = change['new']
+
+        # Check current components validity
+        components_are_valid = True
+        if not len(self.input_components):
+            components_are_valid = False
+        for c in self.input_components:
+            if c not in available_components:
+                components_are_valid = False
+        if components_are_valid:
+            return
+
+        new_components = []
+        for dim in range(self._input_data_dim):
+            if len(available_components) <= dim:
+                new_components.append(0)
+                continue
+            new_components.append(available_components[dim])
+
+        self.input_components = new_components
+
+    def _link_dropdown(self, dropdown, dim):
+        def handle_dropdown_change(change):
+            copy = self.input_components.copy()
+            copy[dim] = change['new']
+            self.input_components = copy
+        dropdown.observe(handle_dropdown_change, names=['value'])
+
+        def handle_input_change(change):
+            dropdown.value = self.input_components[dim]
+        self.observe(handle_input_change, names=['input_components'])
+
+        link((dropdown, 'options'), (self, '_available_input_components'))
+
+    def interact(self):
+        component_dropdowns = [Label(value="Input components:")]
+        for dim in range(self._input_data_dim):
+            dropdown = Dropdown(
+                options=self._available_input_components,
+                value=self.input_components[dim]
+            )
+            dropdown.layout.width = 'fit-content'
+            self._link_dropdown(dropdown, dim)
+            component_dropdowns.append(dropdown)
+
+        data_dropdown = Dropdown(
+            options=self._available_input_data,
+            value=self.input_data
+        )
+        data_dropdown.layout.width = 'fit-content'
+        link((data_dropdown, 'value'), (self, 'input_data'))
+
+        return VBox((
+            HBox((Label(value='Input data:'), data_dropdown)),
+            HBox(component_dropdowns)
+        ))
 
 
 @register
 class Warp(PluginBlock):
     _view_name = Unicode('WarpView').tag(sync=True)
     _model_name = Unicode('WarpModel').tag(sync=True)
+
+    _input_data_dim = Int(3)
 
     factor = Float(0.0).tag(sync=True)
     factor_min = Float(-10.0)
@@ -168,16 +269,23 @@ class Warp(PluginBlock):
             max=self.factor_max,
             value=0.0
         )
-        slider_min = FloatText(description='Min', value=self.factor_min)
-        slider_max = FloatText(description='Max', value=self.factor_max)
+        slider_min = FloatText(description='Factor Min', value=self.factor_min)
+        slider_max = FloatText(description='Factor Max', value=self.factor_max)
         link((self, 'factor'), (slider, 'value'))
         link((self, 'factor_min'), (slider, 'min'))
         link((self, 'factor_min'), (slider_min, 'value'))
         link((self, 'factor_max'), (slider, 'max'))
         link((self, 'factor_max'), (slider_max, 'value'))
-        return VBox((slider, slider_min, slider_max))
+
+        input_dim_widget = super(Warp, self).interact()
+
+        return HBox((
+            input_dim_widget,
+            VBox((slider, slider_min, slider_max))
+        ))
 
     def apply(self, block):
+        # TODO This does not always work, e.g. Warp -> VectorField -> Clip
         if isinstance(block, Clip):
             raise RuntimeError('Clip cannot be computed after a Warp effect')
         super(Warp, self).apply(block)
@@ -216,6 +324,8 @@ class VectorField(PluginBlock):
     _view_name = Unicode('VectorFieldView').tag(sync=True)
     _model_name = Unicode('VectorFieldModel').tag(sync=True)
 
+    _input_data_dim = Int(3)
+
     length_factor = Float(1.).tag(sync=True)
     width = Int(1).tag(sync=True)
     percentage_vectors = Float(1.).tag(sync=True)
@@ -227,6 +337,8 @@ class VectorField(PluginBlock):
 class Threshold(PluginBlock):
     _view_name = Unicode('ThresholdView').tag(sync=True)
     _model_name = Unicode('ThresholdModel').tag(sync=True)
+
+    _input_data_dim = Int(1)
 
     lower_bound = Float().tag(sync=True)
     upper_bound = Float().tag(sync=True)
@@ -240,7 +352,12 @@ class Threshold(PluginBlock):
         )
         slider.observe(self._on_slider_change, 'value')
 
-        return VBox((slider, ))
+        input_dim_widget = super(Threshold, self).interact()
+
+        return HBox((
+            input_dim_widget,
+            VBox((slider, ))
+        ))
 
     def _on_slider_change(self, change):
         self.lower_bound = change['new'][0]
