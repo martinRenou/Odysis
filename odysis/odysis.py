@@ -78,14 +78,20 @@ class Block(Widget, BlockType):
     visualized_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
 
     def apply(self, block):
+        block._validate_parent(self)
+
         if block._parent_block is not None:
             raise RuntimeError('Cannot apply the same effect at different places')
+
         block._parent_block = self
         self._blocks = list([b for b in self._blocks] + [block])
 
     def remove(self, block):
         block._parent_block = None
         self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
+
+    def _validate_parent(self, parent):
+        pass
 
 
 def _grid_data_to_data_widget(grid_data):
@@ -284,12 +290,6 @@ class Warp(PluginBlock):
             VBox((slider, slider_min, slider_max))
         ))
 
-    def apply(self, block):
-        # TODO This does not always work, e.g. Warp -> VectorField -> Clip
-        if isinstance(block, Clip):
-            raise RuntimeError('Clip cannot be computed after a Warp effect')
-        super(Warp, self).apply(block)
-
 
 @register
 class Clip(PluginBlock):
@@ -318,6 +318,13 @@ class Clip(PluginBlock):
         link((self, 'plane_position_max'), (slider_max, 'value'))
         return VBox((slider, slider_min, slider_max))
 
+    def _validate_parent(self, parent):
+        block = parent
+        while not isinstance(block, Mesh):
+            if isinstance(block, Warp):
+                raise RuntimeError('Cannot apply a Clip after a Warp effect')
+            block = block._parent_block
+
 
 @register
 class VectorField(PluginBlock):
@@ -331,6 +338,13 @@ class VectorField(PluginBlock):
     percentage_vectors = Float(1.).tag(sync=True)
     distribution = Enum(('ordered', 'random'), default_value='ordered').tag(sync=True)
     mode = Enum(('volume', 'surface'), default_value='volume').tag(sync=True)
+
+    def _validate_parent(self, parent):
+        block = parent
+        while not isinstance(block, Mesh):
+            if isinstance(block, VectorField):
+                raise RuntimeError('Cannot apply a VectorField after a VectorField effect')
+            block = block._parent_block
 
 
 @register
