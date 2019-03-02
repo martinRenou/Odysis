@@ -12,52 +12,8 @@ if (!Object.values) {
 
 let {View, blockTypeRegister} = require('./ViewUtils/View');
 
-let views = new Map();
-
 let odysis_version = '0.1.0';
 
-/**
- * Getter for view
- * @param container : container of the view that you want
- * @return : the view which is in this container, undefined if there's
- * no view in this container
- * **/
-function get_view (container) {
-  if (views.has(container)) {
-    return views.get(container);
-  }
-
-  return undefined;
-}
-
-/**
- * Resize the canvas when container is resized
- * @param container : container of the view that you want to resize
- * @param opts : optional options of your resize, if no options is given
- * the view will fill the container. Options can be for example
- * { width: 800, height: 600, backgroundColor: '#f4c842' }
- * **/
-function resize_view (container, opts) {
-  let view = get_view(container);
-
-  if (view !== undefined) { view.resize(opts); }
-}
-
-/**
- * Remove a view
- * @param container : container in which you want to remove the view
- * **/
-function remove_view (container) {
-  let view = views.get(container);
-
-  if (view !== undefined) {
-    views.delete(container);
-
-    return view.remove();
-  }
-
-  return false;
-}
 
 let SceneModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend({}, widgets.DOMWidgetModel.prototype.defaults, {
@@ -84,8 +40,6 @@ let SceneView = widgets.DOMWidgetView.extend({
 
             this.view.renderer.setClearColor(this.model.get('background_color'));
 
-            views.set(this.el, this.view);
-
             this.create_child_view(this.model.get('mesh'), {
                 scene_view: this,
                 parent_view: this
@@ -100,6 +54,11 @@ let SceneView = widgets.DOMWidgetView.extend({
         this.model.on('change:background_color', () => {
             this.view.renderer.setClearColor(this.model.get('background_color'));
         });
+    },
+
+    remove: function() {
+        SceneView.__super__.remove.apply(this, arguments);
+        return this.view.remove();
     }
 });
 
