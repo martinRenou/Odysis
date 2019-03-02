@@ -203,10 +203,10 @@ class VectorField extends PlugInBlock {
         case 'ordered':
           switch (this._mode) {
             case 'volume':
-              vertex = i;
+              vertex = getOrderedInt(i, this._pcVectors, nbVertices - 1);
               break;
             case 'surface':
-              vertex = surfaceIndexes[i];
+              vertex = surfaceIndexes[getOrderedInt(i, this._pcVectors, nbVertices - 1)];
               break;
           }
           break;
@@ -223,10 +223,10 @@ class VectorField extends PlugInBlock {
         default:
           switch (this._mode) {
             case 'volume':
-              vertex = i;
+              vertex = getOrderedInt(i, this._pcVectors, nbVertices - 1);
               break;
             case 'surface':
-              vertex = surfaceIndexes[i];
+              vertex = surfaceIndexes[getOrderedInt(i, this._pcVectors, nbVertices - 1)];
               break;
           }
           this._distribution = 'ordered';
@@ -343,6 +343,14 @@ function getRandomInt (max) {
   let min = Math.ceil(0);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getOrderedInt (idx, pc, max) {
+  let value = Math.floor(idx / pc);
+  if (value > max) {
+    value = max;
+  }
+  return value;
 }
 
 module.exports = VectorField;
