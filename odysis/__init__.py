@@ -1,6 +1,8 @@
 from ._version import version_info, __version__
 
 from .odysis import *
+from .api import *
+
 
 def _jupyter_nbextension_paths():
     return [{

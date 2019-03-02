@@ -93,6 +93,35 @@ class Block(Widget, BlockType):
     def _validate_parent(self, parent):
         pass
 
+    def warp(self, *args, **kwargs):
+        effect = Warp(*args, **kwargs)
+        self.apply(effect)
+        return effect
+
+    def vector_field(self, *args, **kwargs):
+        effect = VectorField(*args, **kwargs)
+        self.apply(effect)
+        return effect
+
+    def points(self, *args, **kwargs):
+        raise RuntimeError('Points effect not implemented yet')
+
+    def clip(self, *args, **kwargs):
+        effect = Clip(*args, **kwargs)
+        self.apply(effect)
+        return effect
+
+    def slice(self, *args, **kwargs):
+        raise RuntimeError('Slice effect not implemented yet')
+
+    def threshold(self, *args, **kwargs):
+        effect = Threshold(*args, **kwargs)
+        self.apply(effect)
+        return effect
+
+    def iso_surface(self, *args, **kwargs):
+        raise RuntimeError('IsoSurface effect not implemented yet')
+
 
 def _grid_data_to_data_widget(grid_data):
     data = []
