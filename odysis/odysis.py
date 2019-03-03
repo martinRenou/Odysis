@@ -9,7 +9,8 @@ from ipywidgets import (
     widget_serialization,
     DOMWidget, Widget, register,
     Color,
-    Dropdown, FloatRangeSlider, FloatSlider, FloatText, Label,
+    Dropdown, FloatRangeSlider, FloatSlider, FloatText, IntSlider, Label,
+    ToggleButtons,
     link,
     VBox, HBox
 )
@@ -340,11 +341,13 @@ class Clip(PluginBlock):
         )
         slider_min = FloatText(description='Min', value=self.plane_position_min)
         slider_max = FloatText(description='Max', value=self.plane_position_max)
+
         link((self, 'plane_position'), (slider, 'value'))
         link((self, 'plane_position_min'), (slider, 'min'))
         link((self, 'plane_position_min'), (slider_min, 'value'))
         link((self, 'plane_position_max'), (slider, 'max'))
         link((self, 'plane_position_max'), (slider_max, 'value'))
+
         return VBox((slider, slider_min, slider_max))
 
     def _validate_parent(self, parent):
@@ -367,6 +370,34 @@ class VectorField(PluginBlock):
     percentage_vectors = Float(1.).tag(sync=True)
     distribution = Enum(('ordered', 'random'), default_value='ordered').tag(sync=True)
     mode = Enum(('volume', 'surface'), default_value='volume').tag(sync=True)
+
+    def interact(self):
+        length_factor = FloatText(description='Length factor', value=self.length_factor)
+        width = IntSlider(description='Width', min=1, max=10, value=self.width)
+        percentage_vectors = FloatSlider(description='Nb vectors', min=0.0, max=1.0, value=self.percentage_vectors)
+        distribution = ToggleButtons(
+            description='Distribution',
+            options=['ordered', 'random'],
+            value=self.distribution
+        )
+        mode = ToggleButtons(
+            description='Mode',
+            options=['volume', 'surface'],
+            value=self.mode
+        )
+
+        link((self, 'length_factor'), (length_factor, 'value'))
+        link((self, 'width'), (width, 'value'))
+        link((self, 'percentage_vectors'), (percentage_vectors, 'value'))
+        link((self, 'distribution'), (distribution, 'value'))
+        link((self, 'mode'), (mode, 'value'))
+
+        input_dim_widget = super(VectorField, self).interact()
+
+        return HBox((
+            input_dim_widget,
+            VBox((length_factor, width, percentage_vectors, distribution, mode))
+        ))
 
     def _validate_parent(self, parent):
         block = parent
