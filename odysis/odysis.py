@@ -69,14 +69,17 @@ class Block(Widget, BlockType):
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     _blocks = List(Instance(BlockType)).tag(sync=True, **widget_serialization)
+    _available_visualized_data = List([])
+    _available_visualized_components = List([])
 
     visible = Bool(True).tag(sync=True)
     colored = Bool(True).tag(sync=True)
     # TODO position, rotation, scale, wireframe
+    colormap = Enum(('viridis', 'plasma', 'magma', 'inferno'), default_value='viridis').tag(sync=True)
     colormap_min = Float().tag(sync=True)
     colormap_max = Float().tag(sync=True)
     visualized_data = Unicode().tag(sync=True)
-    visualized_components = List(Union(trait_types=(Unicode(), Int()))).tag(sync=True)
+    visualized_component = Unicode().tag(sync=True)
 
     def apply(self, block):
         block._validate_parent(self)
@@ -90,9 +93,6 @@ class Block(Widget, BlockType):
     def remove(self, block):
         block._parent_block = None
         self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
-
-    def _validate_parent(self, parent):
-        pass
 
     def warp(self, *args, **kwargs):
         effect = Warp(*args, **kwargs)
@@ -123,6 +123,49 @@ class Block(Widget, BlockType):
     def iso_surface(self, *args, **kwargs):
         raise RuntimeError('IsoSurface effect not implemented yet')
 
+    def _validate_parent(self, parent):
+        pass
+
+    def interact_isocolor(self):
+        data = Dropdown(
+            description='Visualized data',
+            options=self._available_visualized_data,
+            value=self.visualized_data
+        )
+        data.layout.width = 'fit-content'
+
+        component = Dropdown(
+            description='Visualized component',
+            options=self._available_visualized_components,
+            value=self.visualized_component
+        )
+        component.layout.width = 'fit-content'
+
+        colormap = ToggleButtons(
+            description='Colormap',
+            options=['viridis', 'plasma', 'magma', 'inferno'],
+            value=self.colormap
+        )
+
+        colormapslider = FloatRangeSlider(
+            value=[self.colormap_min, self.colormap_max],
+            min=self.colormap_min,
+            max=self.colormap_max,
+            description="Colormap bounds"
+        )
+
+        def on_range_change(change):
+            self.colormap_min = change['new'][0]
+            self.colormap_max = change['new'][1]
+
+        colormapslider.observe(on_range_change, 'value')
+
+        link((data, 'value'), (self, 'visualized_data'))
+        link((component, 'value'), (self, 'visualized_component'))
+        link((colormap, 'value'), (self, 'colormap'))
+
+        return (data, component, colormap, colormapslider)
+
 
 def _grid_data_to_data_widget(grid_data):
     data = []
@@ -149,6 +192,7 @@ class Mesh(Block):
     _view_module_version = Unicode(odysis_version).tag(sync=True)
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
+    # TODO: interact with colormap/handle data change and update visualized component
     # TODO: validate vertices/faces/tetras as being 1-D array, and validate dtype
     vertices = Array(default_value=array(FLOAT32)).tag(sync=True, **array_serialization)
     faces = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
@@ -195,7 +239,7 @@ class PluginBlock(Block):
 
     _available_input_data = List([])
     _available_input_components = List([])
-    _input_data_dim = Int(3)
+    _input_data_dim = Int(allow_none=True, default_value=None)
 
     # TODO Validate data/components names and synchronise JavaScript -> Python
     input_data = Unicode(allow_none=True, default_value=None).tag(sync=True)
@@ -208,7 +252,7 @@ class PluginBlock(Block):
         return block.data
 
     @observe('_parent_block')
-    def _update_parent(self, change):
+    def _update_input_data(self, change):
         parent = change['new']
         if parent is None:
             return
@@ -217,6 +261,8 @@ class PluginBlock(Block):
 
         self._available_input_data = [d.name for d in data]
         self.input_data = self._available_input_data[0]
+        self._available_visualized_data = [d.name for d in data]
+        self.visualized_data = self._available_visualized_data[0]
 
     @observe('input_data')
     def _update_available_components(self, change):
@@ -226,8 +272,19 @@ class PluginBlock(Block):
                 current_data = d
         self._available_input_components = [c.name for c in current_data.components] + [0]
 
+    @observe('visualized_data')
+    def _update_available_visualized_components(self, change):
+        data = self._get_data(self._parent_block)
+        for d in data:
+            if d.name == change['new']:
+                current_data = d
+        self._available_visualized_components = [c.name for c in current_data.components] + ['Magnitude']
+
     @observe('_available_input_components')
     def _update_input_components(self, change):
+        if self._input_data_dim is None:
+            return
+
         available_components = change['new']
 
         # Check current components validity
@@ -249,6 +306,16 @@ class PluginBlock(Block):
 
         self.input_components = new_components
 
+    @observe('_available_visualized_components')
+    def _update_visualized_component(self, change):
+        available_visualized_components = change['new']
+
+        # Check current component validity
+        if self.visualized_component in available_visualized_components:
+            return
+
+        self.visualized_component = available_visualized_components[0]
+
     def _link_dropdown(self, dropdown, dim):
         def handle_dropdown_change(change):
             copy = self.input_components.copy()
@@ -263,25 +330,34 @@ class PluginBlock(Block):
         link((dropdown, 'options'), (self, '_available_input_components'))
 
     def interact(self):
-        components = [Label('Input components')]
-        for dim in range(self._input_data_dim):
-            dropdown = Dropdown(
-                options=self._available_input_components,
-                value=self.input_components[dim]
+        isocolor_widgets = self.interact_isocolor()
+
+        if self._input_data_dim is not None:
+            components = [Label('Input components')]
+            for dim in range(self._input_data_dim):
+                dropdown = Dropdown(
+                    options=self._available_input_components,
+                    value=self.input_components[dim]
+                )
+                dropdown.layout.width = 'fit-content'
+                self._link_dropdown(dropdown, dim)
+                components.append(dropdown)
+
+            data = Dropdown(
+                description='Input data',
+                options=self._available_input_data,
+                value=self.input_data
             )
-            dropdown.layout.width = 'fit-content'
-            self._link_dropdown(dropdown, dim)
-            components.append(dropdown)
+            data.layout.width = 'fit-content'
 
-        data = Dropdown(
-            description='Input data',
-            options=self._available_input_data,
-            value=self.input_data
-        )
-        data.layout.width = 'fit-content'
-        link((data, 'value'), (self, 'input_data'))
+            link((data, 'value'), (self, 'input_data'))
 
-        return VBox((data, HBox(components)))
+            return HBox((
+                VBox(isocolor_widgets),
+                VBox((data, HBox(components)))
+            ))
+
+        return VBox(isocolor_widgets)
 
 
 @register
@@ -311,10 +387,10 @@ class Warp(PluginBlock):
         link((self, 'factor_max'), (slider, 'max'))
         link((self, 'factor_max'), (slider_max, 'value'))
 
-        input_dim_widget = super(Warp, self).interact()
+        super_widgets = super(Warp, self).interact()
 
         return HBox((
-            input_dim_widget,
+            super_widgets,
             VBox((slider, slider_min, slider_max))
         ))
 
@@ -346,7 +422,12 @@ class Clip(PluginBlock):
         link((self, 'plane_position_max'), (slider, 'max'))
         link((self, 'plane_position_max'), (slider_max, 'value'))
 
-        return VBox((slider, slider_min, slider_max))
+        super_widgets = super(Clip, self).interact()
+
+        return HBox((
+            super_widgets,
+            VBox((slider, slider_min, slider_max))
+        ))
 
     def _validate_parent(self, parent):
         block = parent
@@ -379,6 +460,7 @@ class VectorField(PluginBlock):
         )
         percentage_vectors = FloatSlider(
             description='Nb vectors',
+            step=0.01,
             min=0.0, max=1.0, value=self.percentage_vectors,
             readout_format='.2%'
         )
@@ -399,10 +481,10 @@ class VectorField(PluginBlock):
         link((self, 'distribution'), (distribution, 'value'))
         link((self, 'mode'), (mode, 'value'))
 
-        input_dim_widget = super(VectorField, self).interact()
+        super_widgets = super(VectorField, self).interact()
 
         return HBox((
-            input_dim_widget,
+            super_widgets,
             VBox((length_factor, width, percentage_vectors, distribution, mode))
         ))
 
@@ -433,10 +515,10 @@ class Threshold(PluginBlock):
         )
         slider.observe(self._on_slider_change, 'value')
 
-        input_dim_widget = super(Threshold, self).interact()
+        super_widgets = super(Threshold, self).interact()
 
         return HBox((
-            input_dim_widget,
+            super_widgets,
             VBox((slider, ))
         ))
 

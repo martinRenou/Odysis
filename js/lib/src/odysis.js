@@ -49,7 +49,6 @@ let SceneView = widgets.DOMWidgetView.extend({
         });
     },
 
-
     model_events: function() {
         this.model.on('change:background_color', () => {
             this.view.renderer.setClearColor(this.model.get('background_color'));
@@ -132,10 +131,15 @@ let BlockView = widgets.WidgetView.extend({
             } else {
                 this.model.set('visualized_data', this.block.visualizedData || '');
             }
-            if (this.model.get('visualized_components').length) {
-                this.block.visualizedComponents = this.model.get('visualized_components');
+            if (this.model.get('visualized_component').length) {
+                this.block.visualizedComponent = this.model.get('visualized_component');
             } else {
-                this.model.set('visualized_components', this.block.visualizedComponents || []);
+                this.model.set('visualized_component', this.block.visualizedComponent || []);
+            }
+            if (this.model.get('colormap')) {
+                this.block.colorMap = this.model.get('colormap');
+            } else {
+                this.model.set('colormap', this.block.colorMap);
             }
             if (this.model.get('colormap_min')) {
                 this.block.colorMapMin = this.model.get('colormap_min');
@@ -165,8 +169,11 @@ let BlockView = widgets.WidgetView.extend({
         this.model.on('change:visualized_data', () => {
             this.block.visualizedData = this.model.get('visualized_data');
         });
-        this.model.on('change:visualized_components', () => {
-            this.block.visualizedComponents = this.model.get('visualized_components');
+        this.model.on('change:visualized_component', () => {
+            this.block.visualizedComponent = this.model.get('visualized_component');
+        });
+        this.model.on('change:colormap', () => {
+            this.block.colorMap = this.model.get('colormap');
         });
         this.model.on('change:colormap_max', () => {
             this.block.colorMapMax = this.model.get('colormap_max');
