@@ -263,7 +263,7 @@ class PluginBlock(Block):
         link((dropdown, 'options'), (self, '_available_input_components'))
 
     def interact(self):
-        component_dropdowns = [Label(value="Input components:")]
+        components = [Label('Input components')]
         for dim in range(self._input_data_dim):
             dropdown = Dropdown(
                 options=self._available_input_components,
@@ -271,19 +271,17 @@ class PluginBlock(Block):
             )
             dropdown.layout.width = 'fit-content'
             self._link_dropdown(dropdown, dim)
-            component_dropdowns.append(dropdown)
+            components.append(dropdown)
 
-        data_dropdown = Dropdown(
+        data = Dropdown(
+            description='Input data',
             options=self._available_input_data,
             value=self.input_data
         )
-        data_dropdown.layout.width = 'fit-content'
-        link((data_dropdown, 'value'), (self, 'input_data'))
+        data.layout.width = 'fit-content'
+        link((data, 'value'), (self, 'input_data'))
 
-        return VBox((
-            HBox((Label(value='Input data:'), data_dropdown)),
-            HBox(component_dropdowns)
-        ))
+        return VBox((data, HBox(components)))
 
 
 @register
@@ -372,9 +370,18 @@ class VectorField(PluginBlock):
     mode = Enum(('volume', 'surface'), default_value='volume').tag(sync=True)
 
     def interact(self):
-        length_factor = FloatText(description='Length factor', value=self.length_factor)
-        width = IntSlider(description='Width', min=1, max=10, value=self.width)
-        percentage_vectors = FloatSlider(description='Nb vectors', min=0.0, max=1.0, value=self.percentage_vectors)
+        length_factor = FloatText(
+            description='Length factor', value=self.length_factor
+        )
+        width = IntSlider(
+            description='Width',
+            min=1, max=10, value=self.width
+        )
+        percentage_vectors = FloatSlider(
+            description='Nb vectors',
+            min=0.0, max=1.0, value=self.percentage_vectors,
+            readout_format='.2%'
+        )
         distribution = ToggleButtons(
             description='Distribution',
             options=['ordered', 'random'],
