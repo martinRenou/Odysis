@@ -126,7 +126,7 @@ class Block(Widget, BlockType):
     def _validate_parent(self, parent):
         pass
 
-    def interact_isocolor(self):
+    def _interact_isocolor(self):
         data = Dropdown(
             description='Visualized data',
             options=self._available_visualized_data,
@@ -141,11 +141,12 @@ class Block(Widget, BlockType):
         )
         component.layout.width = 'fit-content'
 
-        colormap = ToggleButtons(
+        colormap = Dropdown(
             description='Colormap',
             options=['viridis', 'plasma', 'magma', 'inferno'],
             value=self.colormap
         )
+        colormap.layout.width = 'fit-content'
 
         colormapslider = FloatRangeSlider(
             value=[self.colormap_min, self.colormap_max],
@@ -329,8 +330,8 @@ class PluginBlock(Block):
 
         link((dropdown, 'options'), (self, '_available_input_components'))
 
-    def interact(self):
-        isocolor_widgets = self.interact_isocolor()
+    def _interact(self):
+        isocolor_widgets = self._interact_isocolor()
 
         if self._input_data_dim is not None:
             components = [Label('Input components')]
@@ -352,12 +353,12 @@ class PluginBlock(Block):
 
             link((data, 'value'), (self, 'input_data'))
 
-            return HBox((
+            return (
                 VBox(isocolor_widgets),
                 VBox((data, HBox(components)))
-            ))
+            )
 
-        return VBox(isocolor_widgets)
+        return (VBox(isocolor_widgets), )
 
 
 @register
@@ -387,12 +388,11 @@ class Warp(PluginBlock):
         link((self, 'factor_max'), (slider, 'max'))
         link((self, 'factor_max'), (slider_max, 'value'))
 
-        super_widgets = super(Warp, self).interact()
+        super_widgets = self._interact()
 
-        return HBox((
-            super_widgets,
-            VBox((slider, slider_min, slider_max))
-        ))
+        return HBox(
+            super_widgets + (VBox((slider, slider_min, slider_max)), )
+        )
 
 
 @register
@@ -422,12 +422,11 @@ class Clip(PluginBlock):
         link((self, 'plane_position_max'), (slider, 'max'))
         link((self, 'plane_position_max'), (slider_max, 'value'))
 
-        super_widgets = super(Clip, self).interact()
+        super_widgets = self._interact()
 
-        return HBox((
-            super_widgets,
-            VBox((slider, slider_min, slider_max))
-        ))
+        return HBox(
+            super_widgets + (VBox((slider, slider_min, slider_max)), )
+        )
 
     def _validate_parent(self, parent):
         block = parent
@@ -481,12 +480,11 @@ class VectorField(PluginBlock):
         link((self, 'distribution'), (distribution, 'value'))
         link((self, 'mode'), (mode, 'value'))
 
-        super_widgets = super(VectorField, self).interact()
+        super_widgets = self._interact()
 
-        return HBox((
-            super_widgets,
-            VBox((length_factor, width, percentage_vectors, distribution, mode))
-        ))
+        return HBox(
+            super_widgets + (VBox((length_factor, width, percentage_vectors, distribution, mode)), )
+        )
 
     def _validate_parent(self, parent):
         block = parent
@@ -515,12 +513,11 @@ class Threshold(PluginBlock):
         )
         slider.observe(self._on_slider_change, 'value')
 
-        super_widgets = super(Threshold, self).interact()
+        super_widgets = self._interact()
 
-        return HBox((
-            super_widgets,
-            VBox((slider, ))
-        ))
+        return HBox(
+            super_widgets + (VBox((slider, )), )
+        )
 
     def _on_slider_change(self, change):
         self.lower_bound = change['new'][0]
