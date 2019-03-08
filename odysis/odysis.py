@@ -81,13 +81,6 @@ class Block(Widget, BlockType):
     visualized_data = Unicode().tag(sync=True)
     visualized_component = Unicode().tag(sync=True)
 
-    def __init__(self, *args, **kwargs):
-        super(Block, self).__init__(*args, **kwargs)
-        self.data_wid = None
-        self.component_wid = None
-        self.colormap_wid = None
-        self.colormapslider_wid = None
-
     def apply(self, block):
         block._validate_parent(self)
 
@@ -130,23 +123,30 @@ class Block(Widget, BlockType):
     def iso_surface(self, *args, **kwargs):
         raise RuntimeError('IsoSurface effect not implemented yet')
 
+    def __init__(self, *args, **kwargs):
+        super(Block, self).__init__(*args, **kwargs)
+        self.visualized_data_wid = None
+        self.visualized_component_wid = None
+        self.colormap_wid = None
+        self.colormapslider_wid = None
+
     def _validate_parent(self, parent):
         pass
 
     def _init_isocolor_widgets(self):
-        self.data_wid = Dropdown(
+        self.visualized_data_wid = Dropdown(
             description='Visualized data',
             options=self._available_visualized_data,
             value=self.visualized_data
         )
-        self.data_wid.layout.width = 'fit-content'
+        self.visualized_data_wid.layout.width = 'fit-content'
 
-        self.component_wid = Dropdown(
+        self.visualized_component_wid = Dropdown(
             description='Visualized component',
             options=self._available_visualized_components,
             value=self.visualized_component
         )
-        self.component_wid.layout.width = 'fit-content'
+        self.visualized_component_wid.layout.width = 'fit-content'
 
         self.colormap_wid = Dropdown(
             description='Colormap',
@@ -168,15 +168,15 @@ class Block(Widget, BlockType):
 
         self.colormapslider_wid.observe(on_range_change, 'value')
 
-        link((self.data_wid, 'value'), (self, 'visualized_data'))
-        link((self.component_wid, 'value'), (self, 'visualized_component'))
+        link((self.visualized_data_wid, 'value'), (self, 'visualized_data'))
+        link((self.visualized_component_wid, 'value'), (self, 'visualized_component'))
         link((self.colormap_wid, 'value'), (self, 'colormap'))
 
     def _interact_isocolor(self):
-        if self.data_wid is None:
+        if self.visualized_data_wid is None:
             self._init_isocolor_widgets()
 
-        return (self.data_wid, self.component_wid, self.colormap_wid, self.colormapslider_wid)
+        return (self.visualized_data_wid, self.visualized_component_wid, self.colormap_wid, self.colormapslider_wid)
 
 
 def _grid_data_to_data_widget(grid_data):
@@ -393,26 +393,35 @@ class Warp(PluginBlock):
     factor_max = Float(10.0)
 
     def interact(self):
-        # TODO Update the step of the slider
-        slider = FloatSlider(
+        if self.factor_wid is None:
+            self._init_warp_widgets()
+
+        return HBox(
+            self._interact() + (VBox((self.factor_wid, self.factor_min_wid, self.factor_max_wid)), )
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(Warp, self).__init__(*args, **kwargs)
+        self.factor_wid = None
+        self.factor_min_wid = None
+        self.factor_max_wid = None
+
+    def _init_warp_widgets(self):
+        self.factor_wid = FloatSlider(
             description='Warp factor',
             min=self.factor_min,
             max=self.factor_max,
             value=0.0
         )
-        slider_min = FloatText(description='Factor Min', value=self.factor_min)
-        slider_max = FloatText(description='Factor Max', value=self.factor_max)
-        link((self, 'factor'), (slider, 'value'))
-        link((self, 'factor_min'), (slider, 'min'))
-        link((self, 'factor_min'), (slider_min, 'value'))
-        link((self, 'factor_max'), (slider, 'max'))
-        link((self, 'factor_max'), (slider_max, 'value'))
 
-        super_widgets = self._interact()
+        self.factor_min_wid = FloatText(description='Factor Min', value=self.factor_min)
+        self.factor_max_wid = FloatText(description='Factor Max', value=self.factor_max)
 
-        return HBox(
-            super_widgets + (VBox((slider, slider_min, slider_max)), )
-        )
+        link((self, 'factor'), (self.factor_wid, 'value'))
+        link((self, 'factor_min'), (self.factor_wid, 'min'))
+        link((self, 'factor_min'), (self.factor_min_wid, 'value'))
+        link((self, 'factor_max'), (self.factor_wid, 'max'))
+        link((self, 'factor_max'), (self.factor_max_wid, 'value'))
 
 
 @register
