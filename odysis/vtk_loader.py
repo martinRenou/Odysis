@@ -58,35 +58,11 @@ def get_ugrid_tetras(grid):
             iterator.GoToNextCell()
             continue
 
-        # TODO: Support of other cell types, playing with indices to
-        # create tetrahedrons. By using vtkCell.triangulate?
-        if iterator.GetCellType() == vtk.VTK_TETRA:
-            out.extend(iterator.GetPointIds())
-        elif iterator.GetCellType() == vtk.VTK_QUADRATIC_TETRA:
-            points = iterator.GetPointIds()
-            out.extend([points.GetId(0), points.GetId(4),
-                       points.GetId(6), points.GetId(7)])
-
-            out.extend([points.GetId(1), points.GetId(4),
-                       points.GetId(5), points.GetId(8)])
-
-            out.extend([points.GetId(2), points.GetId(5),
-                       points.GetId(6), points.GetId(9)])
-
-            out.extend([points.GetId(3), points.GetId(7),
-                       points.GetId(8), points.GetId(9)])
-
-            out.extend([points.GetId(6), points.GetId(4),
-                       points.GetId(7), points.GetId(8)])
-
-            out.extend([points.GetId(4), points.GetId(5),
-                       points.GetId(6), points.GetId(8)])
-
-            out.extend([points.GetId(5), points.GetId(8),
-                       points.GetId(9), points.GetId(6)])
-
-            out.extend([points.GetId(6), points.GetId(7),
-                       points.GetId(8), points.GetId(9)])
+        # Generate tetrahedrons, whatever the Cell type is
+        cell = grid.GetCell(iterator.GetCellId())
+        ids = vtk.vtkIdList()
+        cell.Triangulate(0, ids, vtk.vtkPoints())
+        out.extend(map(ids.GetId, range(ids.GetNumberOfIds())))
 
         iterator.GoToNextCell()
 
