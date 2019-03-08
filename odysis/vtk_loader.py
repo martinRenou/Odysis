@@ -5,13 +5,10 @@ import vtk
 FLOAT32 = 'f'
 UINT32 = 'I'
 
-# TODO Find a generic way to triangulate datasets
-# The bruteforce way would be to loop through the vtkCells
-# and using the triangulate method in order to generate tetrahedrons and triangles:
-# https://vtk.org/doc/nightly/html/classvtkCell.html#afece9607d75536910a3d0b154383d641
-#
-# We could also try to convert the grid to vtkPolyData and use vtkQuadricClustering
-# in order to simplify it
+# TODO
+# We can try to convert the grid to vtkPolyData and use vtkQuadricClustering
+# in order to simplify it and then reduce data communication between back-end
+# and front-end and optimize the rendering
 
 
 def filter_grid(grid, filter_function):
