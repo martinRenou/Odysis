@@ -435,27 +435,35 @@ class Clip(PluginBlock):
     plane_normal = List(Float()).tag(sync=True)
 
     def interact(self):
+        if self.plane_position_wid is None:
+            self._init_clip_widgets()
+
+        return HBox(
+            self._interact() + (VBox((self.plane_position_wid, self.plane_position_min_wid, self.plane_position_max_wid)), )
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(Clip, self).__init__(*args, **kwargs)
+        self.plane_position_wid = None
+        self.plane_position_min_wid = None
+        self.plane_position_max_wid = None
+
+    def _init_clip_widgets(self):
         # TODO Update the step of the slider
-        slider = FloatSlider(
+        self.plane_position_wid = FloatSlider(
             description='Plane position',
             min=self.plane_position_min,
             max=self.plane_position_max,
             value=0.0
         )
-        slider_min = FloatText(description='Min', value=self.plane_position_min)
-        slider_max = FloatText(description='Max', value=self.plane_position_max)
+        self.plane_position_min_wid = FloatText(description='Min', value=self.plane_position_min)
+        self.plane_position_max_wid = FloatText(description='Max', value=self.plane_position_max)
 
-        link((self, 'plane_position'), (slider, 'value'))
-        link((self, 'plane_position_min'), (slider, 'min'))
-        link((self, 'plane_position_min'), (slider_min, 'value'))
-        link((self, 'plane_position_max'), (slider, 'max'))
-        link((self, 'plane_position_max'), (slider_max, 'value'))
-
-        super_widgets = self._interact()
-
-        return HBox(
-            super_widgets + (VBox((slider, slider_min, slider_max)), )
-        )
+        link((self, 'plane_position'), (self.plane_position_wid, 'value'))
+        link((self, 'plane_position_min'), (self.plane_position_wid, 'min'))
+        link((self, 'plane_position_min'), (self.plane_position_min_wid, 'value'))
+        link((self, 'plane_position_max'), (self.plane_position_wid, 'max'))
+        link((self, 'plane_position_max'), (self.plane_position_max_wid, 'value'))
 
     def _validate_parent(self, parent):
         block = parent
