@@ -257,6 +257,11 @@ class PluginBlock(Block):
     input_data = Unicode(allow_none=True, default_value=None).tag(sync=True)
     input_components = List(Union((Unicode(), Int()))).tag(sync=True)
 
+    def __init__(self, *args, **kwargs):
+        super(PluginBlock, self).__init__(*args, **kwargs)
+        self.input_data_wid = None
+        self.input_components_wid = None
+
     def _get_data(self, parent):
         block = parent
         while not isinstance(block, Mesh):
@@ -341,32 +346,36 @@ class PluginBlock(Block):
 
         link((dropdown, 'options'), (self, '_available_input_components'))
 
+    def _init_input_data_widgets(self):
+        self.input_components_wid = [Label('Input components')]
+        for dim in range(self._input_data_dim):
+            dropdown = Dropdown(
+                options=self._available_input_components,
+                value=self.input_components[dim]
+            )
+            dropdown.layout.width = 'fit-content'
+            self._link_dropdown(dropdown, dim)
+            self.input_components_wid.append(dropdown)
+
+        self.input_data_wid = Dropdown(
+            description='Input data',
+            options=self._available_input_data,
+            value=self.input_data
+        )
+        self.input_data_wid.layout.width = 'fit-content'
+
+        link((self.input_data_wid, 'value'), (self, 'input_data'))
+
     def _interact(self):
         isocolor_widgets = self._interact_isocolor()
 
         if self._input_data_dim is not None:
-            components = [Label('Input components')]
-            for dim in range(self._input_data_dim):
-                dropdown = Dropdown(
-                    options=self._available_input_components,
-                    value=self.input_components[dim]
-                )
-                dropdown.layout.width = 'fit-content'
-                self._link_dropdown(dropdown, dim)
-                components.append(dropdown)
-
-            data = Dropdown(
-                description='Input data',
-                options=self._available_input_data,
-                value=self.input_data
-            )
-            data.layout.width = 'fit-content'
-
-            link((data, 'value'), (self, 'input_data'))
+            if self.input_data_wid is None:
+                self._init_input_data_widgets()
 
             return (
                 VBox(isocolor_widgets),
-                VBox((data, HBox(components)))
+                VBox((self.input_data_wid, HBox(self.input_components_wid)))
             )
 
         return (VBox(isocolor_widgets), )
