@@ -81,6 +81,13 @@ class Block(Widget, BlockType):
     visualized_data = Unicode().tag(sync=True)
     visualized_component = Unicode().tag(sync=True)
 
+    def __init__(self, *args, **kwargs):
+        super(Block, self).__init__(*args, **kwargs)
+        self.data_wid = None
+        self.component_wid = None
+        self.colormap_wid = None
+        self.colormapslider_wid = None
+
     def apply(self, block):
         block._validate_parent(self)
 
@@ -126,29 +133,29 @@ class Block(Widget, BlockType):
     def _validate_parent(self, parent):
         pass
 
-    def _interact_isocolor(self):
-        data = Dropdown(
+    def _init_isocolor_widgets(self):
+        self.data_wid = Dropdown(
             description='Visualized data',
             options=self._available_visualized_data,
             value=self.visualized_data
         )
-        data.layout.width = 'fit-content'
+        self.data_wid.layout.width = 'fit-content'
 
-        component = Dropdown(
+        self.component_wid = Dropdown(
             description='Visualized component',
             options=self._available_visualized_components,
             value=self.visualized_component
         )
-        component.layout.width = 'fit-content'
+        self.component_wid.layout.width = 'fit-content'
 
-        colormap = Dropdown(
+        self.colormap_wid = Dropdown(
             description='Colormap',
             options=['viridis', 'plasma', 'magma', 'inferno'],
             value=self.colormap
         )
-        colormap.layout.width = 'fit-content'
+        self.colormap_wid.layout.width = 'fit-content'
 
-        colormapslider = FloatRangeSlider(
+        self.colormapslider_wid = FloatRangeSlider(
             value=[self.colormap_min, self.colormap_max],
             min=self.colormap_min,
             max=self.colormap_max,
@@ -159,13 +166,17 @@ class Block(Widget, BlockType):
             self.colormap_min = change['new'][0]
             self.colormap_max = change['new'][1]
 
-        colormapslider.observe(on_range_change, 'value')
+        self.colormapslider_wid.observe(on_range_change, 'value')
 
-        link((data, 'value'), (self, 'visualized_data'))
-        link((component, 'value'), (self, 'visualized_component'))
-        link((colormap, 'value'), (self, 'colormap'))
+        link((self.data_wid, 'value'), (self, 'visualized_data'))
+        link((self.component_wid, 'value'), (self, 'visualized_component'))
+        link((self.colormap_wid, 'value'), (self, 'colormap'))
 
-        return (data, component, colormap, colormapslider)
+    def _interact_isocolor(self):
+        if self.data_wid is None:
+            self._init_isocolor_widgets()
+
+        return (self.data_wid, self.component_wid, self.colormap_wid, self.colormapslider_wid)
 
 
 def _grid_data_to_data_widget(grid_data):
