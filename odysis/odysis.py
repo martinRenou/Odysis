@@ -304,6 +304,10 @@ class PluginBlock(Block):
 
         available_components = change['new']
 
+        if self.input_components_wid is not None:
+            for component_wid in self.input_components_wid:
+                component_wid.options = available_components
+
         # Check current components validity
         components_are_valid = True
         if not len(self.input_components):
@@ -326,6 +330,9 @@ class PluginBlock(Block):
     @observe('_available_visualized_components')
     def _update_visualized_component(self, change):
         available_visualized_components = change['new']
+
+        if self.visualized_component_wid is not None:
+            self.visualized_component_wid.options = available_visualized_components
 
         # Check current component validity
         if self.visualized_component in available_visualized_components:
