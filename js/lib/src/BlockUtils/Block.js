@@ -52,6 +52,9 @@ class Block {
     this._colored = false;
     this._colorMap = 'viridis';
 
+    this._gridStep = 500;
+    this._gridWidth = 20;
+
     this._position = [0.0, 0.0, 0.0];
     this._rotation = [0.0, 0.0, 0.0];
     this._scale = [1.0, 1.0, 1.0];
@@ -196,7 +199,16 @@ class Block {
     this._isoColor = new THREE.FunctionNode([
       'vec3 isoColorFunc(sampler2D texColorMap, \
         float colorMapMin, float colorMapMax,\
-        float data){',
+        float data,\
+        vec3 position,\
+        float gridstep,\
+        float gridwidth){',
+      '  if (mod(position.x, gridstep) < gridwidth) {',
+      '    return vec3(0.0, 0.0, 0.0);',
+      '  }',
+      '  if (mod(position.y, gridstep) < gridwidth) {',
+      '    return vec3(0.0, 0.0, 0.0);',
+      '  }',
       '  return vec3(texture2D(\
           texColorMap,\
           vec2(( data - colorMapMin ) / ( colorMapMax - colorMapMin ),\
@@ -251,6 +263,9 @@ class Block {
     this._isoColorCall.inputs.data = this._isoColorInputData;
     this._isoColorCall.inputs.colorMapMin = this._colorMapMinNode;
     this._isoColorCall.inputs.colorMapMax = this._colorMapMaxNode;
+    this._isoColorCall.inputs.position = new THREE.PositionNode();
+    this._isoColorCall.inputs.gridstep =  new THREE.FloatNode(this._gridStep);;
+    this._isoColorCall.inputs.gridwidth =  new THREE.FloatNode(this._gridWidth);;
 
     // Check validity of _colorMap
     this.colorMap = this._colorMap;
