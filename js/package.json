@@ -32,12 +32,13 @@
   },
   "dependencies": {
     "@jupyter-widgets/base": "^1.0.0",
-    "lodash": "^4.17.4",
+    "@jupyter-widgets/controls": "^1.4.3",
     "binary-search-tree": "^0.2.6",
     "gl-matrix-mat3": "^2.2.1-npm",
     "gl-matrix-mat4": "^2.2.1-npm",
     "gl-matrix-vec3": "^2.2.1-npm",
     "gl-matrix-vec4": "^2.2.1-npm",
+    "lodash": "^4.17.4",
     "object.values": "^1.0.4",
     "three": "^0.81.2"
   },

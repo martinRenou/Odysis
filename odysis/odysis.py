@@ -20,6 +20,7 @@ from .vtk_loader import (
     load_vtk, FLOAT32, UINT32,
     get_ugrid_vertices, get_ugrid_faces, get_ugrid_tetras, get_ugrid_data
 )
+from .slider import FixedFloatRangeSlider
 
 odysis_version = '^0.1.0'
 
@@ -80,6 +81,8 @@ class Block(Widget, BlockType):
     colormap_max = Float().tag(sync=True)
     visualized_data = Unicode().tag(sync=True)
     visualized_component = Unicode().tag(sync=True)
+    visualized_component_min = Float().tag(sync=True)
+    visualized_component_max = Float().tag(sync=True)
 
     def apply(self, block):
         block._validate_parent(self)
@@ -155,10 +158,10 @@ class Block(Widget, BlockType):
         )
         self.colormap_wid.layout.width = 'fit-content'
 
-        self.colormapslider_wid = FloatRangeSlider(
+        self.colormapslider_wid = FixedFloatRangeSlider(
             value=[self.colormap_min, self.colormap_max],
-            min=self.colormap_min,
-            max=self.colormap_max,
+            min=self.visualized_component_min,
+            max=self.visualized_component_max,
             description="Colormap bounds"
         )
 
@@ -168,6 +171,8 @@ class Block(Widget, BlockType):
 
         self.colormapslider_wid.observe(on_range_change, 'value')
 
+        link((self.colormapslider_wid, 'min'), (self, 'visualized_component_min'))
+        link((self.colormapslider_wid, 'max'), (self, 'visualized_component_max'))
         link((self.visualized_data_wid, 'value'), (self, 'visualized_data'))
         link((self.visualized_component_wid, 'value'), (self, 'visualized_component'))
         link((self.colormap_wid, 'value'), (self, 'colormap'))
@@ -295,7 +300,8 @@ class PluginBlock(Block):
         for d in data:
             if d.name == change['new']:
                 current_data = d
-        self._available_visualized_components = [c.name for c in current_data.components] + ['Magnitude']
+        # TODO Add Magnitude support
+        self._available_visualized_components = [c.name for c in current_data.components]
 
     @observe('_available_input_components')
     def _update_input_components(self, change):
@@ -339,6 +345,20 @@ class PluginBlock(Block):
             return
 
         self.visualized_component = available_visualized_components[0]
+
+    # TODO This code should not exist. This is done on the JavaScript side by
+    # SciviJS, SciviJS should trigger events for this kind of change
+    @observe('visualized_component')
+    def _update_visualized_component_bounds(self, change):
+        data = self._get_data(self._parent_block)
+        for d in data:
+            if d.name == self.visualized_data:
+                for c in d.components:
+                    if c.name == self.visualized_component:
+                        self.visualized_component_min = c.min
+                        self.visualized_component_max = c.max
+                        return
+
 
     def _link_dropdown(self, dropdown, dim):
         def handle_dropdown_change(change):
