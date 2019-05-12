@@ -526,6 +526,34 @@ let ThresholdView = PluginBlockView.extend({
     }
 });
 
+let IsoSurfaceModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'IsoSurfaceModel',
+        _view_name : 'IsoSurfaceView',
+        value: undefined
+    })
+});
+
+let IsoSurfaceView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('IsoSurface', this.parent_view.block).then((block) => {
+            this.block = block;
+
+            if (this.model.get('value')) {
+                this.block.value = this.model.get('value');
+            }
+            this.model.save_changes();
+        });
+    },
+
+    model_events: function () {
+        IsoSurfaceView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:value', () => {
+            this.block.value = this.model.get('value');
+        });
+    }
+});
+
 module.exports = {
     FixedFloatRangeSliderModel: slider.FixedFloatRangeSliderModel,
     FixedFloatRangeSliderView: slider.FixedFloatRangeSliderView,
@@ -552,4 +580,6 @@ module.exports = {
     SliceView: SliceView,
     ThresholdModel: ThresholdModel,
     ThresholdView: ThresholdView,
+    IsoSurfaceModel: IsoSurfaceModel,
+    IsoSurfaceView: IsoSurfaceView,
 };

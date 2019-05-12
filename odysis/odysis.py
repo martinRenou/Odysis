@@ -128,7 +128,9 @@ class Block(Widget, BlockType):
         return effect
 
     def iso_surface(self, *args, **kwargs):
-        raise RuntimeError('IsoSurface effect not implemented yet')
+        effect = IsoSurface(*args, **kwargs)
+        self.apply(effect)
+        return effect
 
     def __init__(self, *args, **kwargs):
         super(Block, self).__init__(*args, **kwargs)
@@ -759,6 +761,63 @@ class Threshold(PluginBlock):
             self.bounds_wid.min = min
             self.bounds_wid.max = max
             self.bounds_wid.value = [min, max]
+
+
+@register
+class IsoSurface(PluginBlock):
+    _view_name = Unicode('IsoSurfaceView').tag(sync=True)
+    _model_name = Unicode('IsoSurfaceModel').tag(sync=True)
+
+    _input_data_dim = Int(1)
+
+    value = Float().tag(sync=True)
+
+    def __init__(self, *args, **kwargs):
+        super(IsoSurface, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
+        self.value_wid = None
+
+    def interact(self):
+        if not self.initialized_widgets:
+            self._init_isosurface_widgets()
+            self.initialized_widgets = True
+
+        return HBox(
+            self._interact() + (VBox((self.value_wid, )), )
+        )
+
+    def _init_isosurface_widgets(self):
+        min, max = self._get_component_min_max(
+            self.input_data, self.input_components[0])
+
+        self.value_wid = FloatSlider(
+            description='Value',
+            min=min,
+            max=max,
+            value=self.value
+        )
+
+        link((self, 'value'), (self.value_wid, 'value'))
+
+    @observe('input_components')
+    def _on_input_components_change(self, change):
+        min, max = self._get_component_min_max(
+            self.input_data, self.input_components[0])
+
+        self.value = (max + min) / 2.
+
+        if self.initialized_widgets:
+
+            self.value_wid.min = min
+            self.value_wid.max = max
+            self.value_wid.value = self.value
+
+    def _validate_parent(self, parent):
+        block = parent
+        while not isinstance(block, Mesh):
+            block = block._parent_block
+        if len(block.tetras) == 0:
+            raise RuntimeError('Cannot apply an IsoSurface to non-volumetric mesh')
 
 
 @register

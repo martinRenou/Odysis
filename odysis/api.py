@@ -1,6 +1,11 @@
 from IPython.display import display
 
-from .odysis import Scene, Warp, VectorField, PointCloud, Clip, Slice, Threshold
+from .odysis import (
+    Scene, Warp,
+    VectorField, PointCloud,
+    Clip, Slice,
+    Threshold, IsoSurface
+)
 
 
 _current_scene = None
@@ -67,7 +72,10 @@ def threshold(**kwargs):
 
 def iso_surface(**kwargs):
     global _current_mesh
-    raise RuntimeError('IsoSurface effect not implemented yet')
+
+    effect = IsoSurface(**kwargs)
+    _current_mesh.apply(effect)
+    return effect
 
 
 def plot():
