@@ -4,6 +4,7 @@ let object_values = require('object.values');
 require('./three');
 require('./odysis.css');
 let serialization = require('./serialization');
+let slider = require('./slider');
 
 
 if (!Object.values) {
@@ -458,6 +459,9 @@ let ThresholdView = PluginBlockView.extend({
 });
 
 module.exports = {
+    FixedFloatRangeSliderModel: slider.FixedFloatRangeSliderModel,
+    FixedFloatRangeSliderView: slider.FixedFloatRangeSliderView,
+
     SceneModel: SceneModel,
     SceneView: SceneView,
     DataModel: DataModel,
