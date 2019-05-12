@@ -104,7 +104,6 @@ let FixedFloatRangeSliderView = widgets_ctrl.FloatRangeSliderView.extend({
     },
 
     _validate_slide_value: function(x) {
-        console.log(this)
         return this.unscale(x);
     },
 
