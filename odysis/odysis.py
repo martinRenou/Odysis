@@ -425,8 +425,9 @@ class Warp(PluginBlock):
     factor_max = Float(10.0)
 
     def interact(self):
-        if self.factor_wid is None:
+        if not self.initialized_widgets:
             self._init_warp_widgets()
+            self.initialized_widgets = True
 
         return HBox(
             self._interact() + (VBox((self.factor_wid, self.factor_min_wid, self.factor_max_wid)), )
@@ -434,6 +435,7 @@ class Warp(PluginBlock):
 
     def __init__(self, *args, **kwargs):
         super(Warp, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
         self.factor_wid = None
         self.factor_min_wid = None
         self.factor_max_wid = None
@@ -467,8 +469,9 @@ class Clip(PluginBlock):
     plane_normal = List(Float()).tag(sync=True)
 
     def interact(self):
-        if self.plane_position_wid is None:
+        if not self.initialized_widgets:
             self._init_clip_widgets()
+            self.initialized_widgets = True
 
         return HBox(
             self._interact() + (VBox((self.plane_position_wid, self.plane_position_min_wid, self.plane_position_max_wid)), )
@@ -476,6 +479,7 @@ class Clip(PluginBlock):
 
     def __init__(self, *args, **kwargs):
         super(Clip, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
         self.plane_position_wid = None
         self.plane_position_min_wid = None
         self.plane_position_max_wid = None
@@ -519,8 +523,9 @@ class VectorField(PluginBlock):
     mode = Enum(('volume', 'surface'), default_value='volume').tag(sync=True)
 
     def interact(self):
-        if self.length_factor_wid is None:
+        if not self.initialized_widgets:
             self._init_vectorfield_widgets()
+            self.initialized_widgets = True
 
         return HBox(
             self._interact() + (VBox((
@@ -532,6 +537,7 @@ class VectorField(PluginBlock):
 
     def __init__(self, *args, **kwargs):
         super(VectorField, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
         self.length_factor_wid = None
         self.width_wid = None
         self.percentage_vectors_wid = None
