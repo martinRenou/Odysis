@@ -237,14 +237,15 @@ class Mesh(Block):
                reload_data=True, reload_tetras=False):
         grid = load_vtk(path)
 
-        if reload_vertices:
-            self.vertices = get_ugrid_vertices(grid)
-        if reload_faces:
-            self.faces = get_ugrid_faces(grid)
-        if reload_tetras:
-            self.tetras = get_ugrid_tetras(grid)
-        if reload_data:
-            self.data = _grid_data_to_data_widget(get_ugrid_data(grid))
+        with self.hold_sync():
+            if reload_vertices:
+                self.vertices = get_ugrid_vertices(grid)
+            if reload_faces:
+                self.faces = get_ugrid_faces(grid)
+            if reload_tetras:
+                self.tetras = get_ugrid_tetras(grid)
+            if reload_data:
+                self.data = _grid_data_to_data_widget(get_ugrid_data(grid))
 
 
 @register
