@@ -50,4 +50,4 @@ For a development installation (requires npm),
 Acknowledgment
 --------------
 
-This work is based on SciviJS, a JavaScript library for fast 3-D mesh analysis
+This work is based on SciviJS, a JavaScript library for fast 3-D mesh analysis, see https://demo.logilab.fr/SciviJS/
