@@ -107,8 +107,10 @@ class Block(Widget, BlockType):
         self.apply(effect)
         return effect
 
-    def points(self, *args, **kwargs):
-        raise RuntimeError('Points effect not implemented yet')
+    def point_cloud(self, *args, **kwargs):
+        effect = PointCloud(*args, **kwargs)
+        self.apply(effect)
+        return effect
 
     def clip(self, *args, **kwargs):
         effect = Clip(*args, **kwargs)
@@ -634,8 +636,73 @@ class VectorField(PluginBlock):
     def _validate_parent(self, parent):
         block = parent
         while not isinstance(block, Mesh):
-            if isinstance(block, VectorField):
-                raise RuntimeError('Cannot apply a VectorField after a VectorField effect')
+            if isinstance(block, VectorField) or isinstance(block, PointCloud):
+                raise RuntimeError('Cannot apply a VectorField after a VectorField effect or a PointCloud effect')
+            block = block._parent_block
+
+
+@register
+class PointCloud(PluginBlock):
+    _view_name = Unicode('PointCloudView').tag(sync=True)
+    _model_name = Unicode('PointCloudModel').tag(sync=True)
+
+    points_size = Float(3.).tag(sync=True)
+    percentage_points = Float(1.).tag(sync=True)
+    distribution = Enum(('ordered', 'random'), default_value='ordered').tag(sync=True)
+    mode = Enum(('volume', 'surface'), default_value='volume').tag(sync=True)
+
+    def interact(self):
+        if not self.initialized_widgets:
+            self._init_pointcloud_widgets()
+            self.initialized_widgets = True
+
+        return HBox(
+            self._interact() + (VBox((
+                self.points_size_wid, self.percentage_points_wid,
+                self.distribution_wid, self.mode_wid
+            )), )
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(PointCloud, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
+        self.points_size_wid = None
+        self.percentage_points_wid = None
+        self.distribution_wid = None
+        self.mode_wid = None
+
+    def _init_pointcloud_widgets(self):
+        self.points_size_wid = FloatSlider(
+            description='Size',
+            min=1., max=20., value=self.points_size
+        )
+        self.percentage_points_wid = FloatSlider(
+            description='Nb points',
+            step=0.01,
+            min=0.0, max=1.0, value=self.percentage_points,
+            readout_format='.2%'
+        )
+        self.distribution_wid = ToggleButtons(
+            description='Distribution',
+            options=['ordered', 'random'],
+            value=self.distribution
+        )
+        self.mode_wid = ToggleButtons(
+            description='Mode',
+            options=['volume', 'surface'],
+            value=self.mode
+        )
+
+        link((self, 'points_size'), (self.points_size_wid, 'value'))
+        link((self, 'percentage_points'), (self.percentage_points_wid, 'value'))
+        link((self, 'distribution'), (self.distribution_wid, 'value'))
+        link((self, 'mode'), (self.mode_wid, 'value'))
+
+    def _validate_parent(self, parent):
+        block = parent
+        while not isinstance(block, Mesh):
+            if isinstance(block, VectorField) or isinstance(block, PointCloud):
+                raise RuntimeError('Cannot apply a PointCloud after a VectorField effect or a PointCloud effect')
             block = block._parent_block
 
 

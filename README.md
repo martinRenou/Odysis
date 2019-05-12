@@ -21,6 +21,7 @@ Odysis has many features including:
 - **Clip** effect
 - **Slice** computation
 - **Vector fields** visualization
+- **Point cloud** visualization
 
 Most of those features (color mapping, warp effect, threshold, clipping...) are **very fast**, because they are done on the GPU. Features that are not done on the GPU like IsoSurface or Slice are done using Octrees or binary tree algorithms.
 

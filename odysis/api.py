@@ -1,6 +1,6 @@
 from IPython.display import display
 
-from .odysis import Scene, Warp, VectorField, Clip, Slice, Threshold
+from .odysis import Scene, Warp, VectorField, PointCloud, Clip, Slice, Threshold
 
 
 _current_scene = None
@@ -33,10 +33,12 @@ def vector_field(**kwargs):
     return effect
 
 
-def points(**kwargs):
+def point_cloud(**kwargs):
     global _current_mesh
 
-    raise RuntimeError('Points effect not implemented yet')
+    effect = PointCloud(**kwargs)
+    _current_mesh.apply(effect)
+    return effect
 
 
 def clip(**kwargs):

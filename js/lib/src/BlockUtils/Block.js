@@ -747,7 +747,7 @@ class Block {
       mesh.material.side = THREE.DoubleSide;
 
       // Set wireframe status and shading
-      if (mesh.type !== 'LineSegments') {
+      if (mesh.type !== 'LineSegments' && mesh.type !== 'Points') {
         mesh.material.wireframe = this._wireframe;
         mesh.material.shading = this._wireframe
           ? THREE.SmoothShading

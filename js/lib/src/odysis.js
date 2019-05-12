@@ -390,6 +390,45 @@ let VectorFieldView = PluginBlockView.extend({
     }
 });
 
+let PointCloudModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'PointCloudModel',
+        _view_name : 'PointCloudView',
+        points_size: 3,
+        percentage_points: 1.0,
+        distribution: 'ordered',
+        mode: 'volume'
+    })
+});
+
+let PointCloudView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('Points', this.parent_view.block).then((block) => {
+            this.block = block;
+            this.block.pointsSize = this.model.get('points_size');
+            this.block.pcPoints = this.model.get('percentage_points');
+            this.block.distribution = this.model.get('distribution');
+            this.block.mode = this.model.get('mode');
+        });
+    },
+
+    model_events: function () {
+        PointCloudView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:points_size', () => {
+            this.block.pointsSize = this.model.get('points_size');
+        });
+        this.model.on('change:percentage_points', () => {
+            this.block.pcPoints = this.model.get('percentage_points');
+        });
+        this.model.on('change:distribution', () => {
+            this.block.distribution = this.model.get('distribution');
+        });
+        this.model.on('change:mode', () => {
+            this.block.mode = this.model.get('mode');
+        });
+    }
+});
+
 let ClipModel = PluginBlockModel.extend({
     defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
         _model_name : 'ClipModel',
@@ -505,6 +544,8 @@ module.exports = {
     WarpView: WarpView,
     VectorFieldModel: VectorFieldModel,
     VectorFieldView: VectorFieldView,
+    PointCloudModel: PointCloudModel,
+    PointCloudView: PointCloudView,
     ClipModel: ClipModel,
     ClipView: ClipView,
     SliceModel: SliceModel,
