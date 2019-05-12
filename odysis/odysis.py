@@ -350,15 +350,10 @@ class PluginBlock(Block):
     # SciviJS, SciviJS should trigger events for this kind of change
     @observe('visualized_component')
     def _update_visualized_component_bounds(self, change):
-        data = self._get_data(self._parent_block)
-        for d in data:
-            if d.name == self.visualized_data:
-                for c in d.components:
-                    if c.name == self.visualized_component:
-                        self.visualized_component_min = c.min
-                        self.visualized_component_max = c.max
-                        return
-
+        min, max = self._get_component_min_max(
+            self.visualized_data, self.visualized_component)
+        self.visualized_component_min = min
+        self.visualized_component_max = max
 
     def _link_dropdown(self, dropdown, dim):
         def handle_dropdown_change(change):
@@ -406,6 +401,16 @@ class PluginBlock(Block):
             )
 
         return (VBox(isocolor_widgets), )
+
+    def _get_component_min_max(self, data_name, component_name):
+        data = self._get_data(self._parent_block)
+        for d in data:
+            if d.name == data_name:
+                for c in d.components:
+                    if c.name == component_name:
+                        return (c.min, c.max)
+        raise RuntimeError('Unknown component {}.{}'.format(
+            data_name, component_name))
 
 
 @register
@@ -582,24 +587,49 @@ class Threshold(PluginBlock):
     lower_bound = Float().tag(sync=True)
     upper_bound = Float().tag(sync=True)
 
+    def __init__(self, *args, **kwargs):
+        super(Threshold, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
+        self.bounds_wid = None
+
     def interact(self):
-        slider = FloatRangeSlider(
+        if not self.initialized_widgets:
+            self._init_threshold_widgets()
+            self.initialized_widgets = True
+
+        return HBox(
+            self._interact() + (VBox((self.bounds_wid, )), )
+        )
+
+    def _init_threshold_widgets(self):
+        self.bounds_wid = FloatRangeSlider(
             description='Bounds',
             min=self.lower_bound,
             max=self.upper_bound,
             value=[self.lower_bound, self.upper_bound]
         )
-        slider.observe(self._on_slider_change, 'value')
-
-        super_widgets = self._interact()
-
-        return HBox(
-            super_widgets + (VBox((slider, )), )
-        )
+        self.bounds_wid.observe(self._on_slider_change, 'value')
 
     def _on_slider_change(self, change):
         self.lower_bound = change['new'][0]
         self.upper_bound = change['new'][1]
+
+    @observe('lower_bound', 'upper_bound')
+    def _on_bound_change(self, change):
+        if self.initialized_widgets:
+            self.bounds_wid.value = [self.lower_bound, self.upper_bound]
+
+    @observe('input_components')
+    def _on_input_components_change(self, change):
+        min, max = self._get_component_min_max(
+            self.input_data, self.input_components[0])
+        self.lower_bound = min
+        self.upper_bound = max
+
+        if self.initialized_widgets:
+            self.bounds_wid.min = min
+            self.bounds_wid.max = max
+            self.bounds_wid.value = [min, max]
 
 
 @register

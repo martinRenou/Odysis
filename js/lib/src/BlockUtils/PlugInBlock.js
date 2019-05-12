@@ -366,7 +366,7 @@ class PlugInBlock extends Block {
 
       if (componentNames !== undefined) {
         this._inputDataName = dataName;
-        this._inputComponentNames = componentNames.slice(0, 4);
+        this._inputComponentNames = componentNames.slice(0, this.inputDataDim);
         while (this._inputComponentNames.length < this.inputDataDim) {
             this._inputComponentNames.push(0);
         }
