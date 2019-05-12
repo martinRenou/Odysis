@@ -419,6 +419,35 @@ let ClipView = PluginBlockView.extend({
     }
 });
 
+let SliceModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'SliceModel',
+        _view_name : 'SliceView',
+        slice_position: 0.0,
+        slice_normal: [1, 0, 0]
+    })
+});
+
+let SliceView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('Slice', this.parent_view.block).then((block) => {
+            this.block = block;
+            this.block.slicePosition = this.model.get('slice_position');
+            this.block.sliceNormal = this.model.get('slice_normal');
+        });
+    },
+
+    model_events: function () {
+        SliceView.__super__.model_events.apply(this, arguments);
+        this.model.on('change:slice_position', () => {
+            this.block.slicePosition = this.model.get('slice_position');
+        });
+        this.model.on('change:slice_normal', () => {
+            this.block.sliceNormal = this.model.get('slice_normal');
+        });
+    }
+});
+
 let ThresholdModel = PluginBlockModel.extend({
     defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
         _model_name : 'ThresholdModel',
@@ -478,6 +507,8 @@ module.exports = {
     VectorFieldView: VectorFieldView,
     ClipModel: ClipModel,
     ClipView: ClipView,
+    SliceModel: SliceModel,
+    SliceView: SliceView,
     ThresholdModel: ThresholdModel,
     ThresholdView: ThresholdView,
 };

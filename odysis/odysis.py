@@ -116,7 +116,9 @@ class Block(Widget, BlockType):
         return effect
 
     def slice(self, *args, **kwargs):
-        raise RuntimeError('Slice effect not implemented yet')
+        effect = Slice(*args, **kwargs)
+        self.apply(effect)
+        return effect
 
     def threshold(self, *args, **kwargs):
         effect = Threshold(*args, **kwargs)
@@ -508,6 +510,59 @@ class Clip(PluginBlock):
             if isinstance(block, Warp):
                 raise RuntimeError('Cannot apply a Clip after a Warp effect')
             block = block._parent_block
+
+
+@register
+class Slice(PluginBlock):
+    _view_name = Unicode('SliceView').tag(sync=True)
+    _model_name = Unicode('SliceModel').tag(sync=True)
+
+    slice_position = Float(0.0).tag(sync=True)
+    slice_position_min = Float(-10)
+    slice_position_max = Float(10)
+    slice_normal = List(Float()).tag(sync=True)
+
+    def interact(self):
+        if not self.initialized_widgets:
+            self._init_slice_widgets()
+            self.initialized_widgets = True
+
+        return HBox(
+            self._interact() + (VBox((self.slice_position_wid, self.slice_position_min_wid, self.slice_position_max_wid)), )
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(Slice, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
+        self.slice_position_wid = None
+        self.slice_position_min_wid = None
+        self.slice_position_max_wid = None
+
+    def _init_slice_widgets(self):
+        # TODO Update the step of the slider
+        self.slice_position_wid = FloatSlider(
+            description='Plane position',
+            min=self.slice_position_min,
+            max=self.slice_position_max,
+            value=0.0
+        )
+        self.slice_position_min_wid = FloatText(description='Min', value=self.slice_position_min)
+        self.slice_position_max_wid = FloatText(description='Max', value=self.slice_position_max)
+
+        link((self, 'slice_position'), (self.slice_position_wid, 'value'))
+        link((self, 'slice_position_min'), (self.slice_position_wid, 'min'))
+        link((self, 'slice_position_min'), (self.slice_position_min_wid, 'value'))
+        link((self, 'slice_position_max'), (self.slice_position_wid, 'max'))
+        link((self, 'slice_position_max'), (self.slice_position_max_wid, 'value'))
+
+    def _validate_parent(self, parent):
+        block = parent
+        while not isinstance(block, Mesh):
+            if isinstance(block, Warp):
+                raise RuntimeError('Cannot apply a Slice after a Warp effect')
+            block = block._parent_block
+        if len(block.tetras) == 0:
+            raise RuntimeError('Cannot apply a Slice to non-volumetric mesh')
 
 
 @register

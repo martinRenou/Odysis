@@ -1,6 +1,6 @@
 from IPython.display import display
 
-from .odysis import Scene, Warp, VectorField, Clip, Threshold
+from .odysis import Scene, Warp, VectorField, Clip, Slice, Threshold
 
 
 _current_scene = None
@@ -50,7 +50,9 @@ def clip(**kwargs):
 def slice(**kwargs):
     global _current_mesh
 
-    raise RuntimeError('Slice effect not implemented yet')
+    effect = Slice(**kwargs)
+    _current_mesh.apply(effect)
+    return effect
 
 
 def threshold(**kwargs):
