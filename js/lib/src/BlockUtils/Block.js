@@ -4,32 +4,37 @@
 
 let THREE = require('../three');
 
-/**
- * Load texture files as color maps
- */
-let loadTextureMapsNodes = function() {
-  let textureMaps = new Map();
-  let textureLoader = new THREE.TextureLoader();
-  textureMaps.set('viridis',
-    new THREE.TextureNode(textureLoader.load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAABCAMAAAD92eD2AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAEsUExURUQCVUUGWUYKXUcNYEcRZEgVZ0gZa0gcbkgfcEgjdEgmdkgpeUcte0cvfUYzf0U2gUQ5g0M8hEI/hUFCh0BFiD9IiT5Lij1OijtRizpTizlWjDhajDZcjTVfjTRhjTJkjjFmjjBpji9sji5uji1xjixyjit1jip4jil6jih9jid/jiaCjiWEjiSGjiOJjiKLjSGOjSGRjCCSjB+Vix+Xix+aih6ciR+fiB+hhyCjhiGmhSOohCWrgietgSmvfy2yfTC0ezS2eTi5dzy7dUC9ckS/cErBbU/Da1TFaFnHZF7JYWTLXmrNW3DPV3bRU33ST4PUS4rVR5DXQ5fYP57ZOqTbNqvcMrLdLbneKMDfJcfgIM7hHdTiGtvjGOLkGOnlGu/lHPbmH/vnI////6dkNu4AAAABYktHRGNcvi2qAAAAB3RJTUUH4wISEh00Ha7gTwAAAIl6VFh0UmF3IHByb2ZpbGUgdHlwZSBleGlmAAAImVWO0Q3DMAhE/5kiI2DAB4xTRYnUDTp+cJzK7fuA0wkO6Pi8T9oGjYWseyABLiwt5VUieKLMTbiNXnXydG2lZNmkMgUynG0N2uN/6YrA6eaOjh27VLocKhpVa49GKo83coV43D/U2X//1j/QBUTJLDCZZckEAAAAbElEQVQI12NgYGRiZmFlY+fg5OLm4eXjFxAUEhYRFROXkJSSlpGVk1dQVFJWUVVT19DU0tbR1dM3MDQyNjE1M7ewtLK2sbWzd3B0cnZxdXP38PTy9vH18w8IDAoOCQ0Lj4iMio6JjYtPSEwCAHgmEvTi4/F5AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAyLTE4VDE4OjI5OjUyKzAxOjAwUKWXygAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMi0xOFQxODoyOTo1MiswMTowMCH4L3YAAAAWdEVYdGV4aWY6RXhpZkltYWdlTGVuZ3RoADl2GPUTAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADg4OE4hyKYAAAASdEVYdGV4aWY6RXhpZk9mZnNldAA2Njd3Z2EAAAAddEVYdGV4aWY6U29mdHdhcmUAU2hvdHdlbGwgMC4yOC40Lr5VtAAAAABJRU5ErkJggg==')));
-  textureMaps.set('plasma',
-    new THREE.TextureNode(textureLoader.load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAABCAMAAAD92eD2AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAEsUExURQ8HiBcHix0GjiMGkCgFki0FlTIFlzYEmTsEmz8EnEMDnkgDn0wCoVAColQCpFgBpVwBpmEAp2UAp2gAqG0AqHEAqHUBqHkBqHwDqIAEqIQFp4gHposKpY8NpJMPopYToZoWn50YnaEbm6Qemachl6okla0nk7EqkLMtjrYwi7kyibw1h785hME7gsQ+f8ZBfclEestHec1KdtBNc9JQcdVTb9ZVbdlYattcaN1eZt9iY+FkYuNoX+VrXeduW+hxWOp0Vux3VO57Uu9+UPGBTfKES/SISfWLRvaPRPeSQviWQPmZPvqdPPuhOfykN/yoNf2sM/2wMf20L/64Lf67K/6/Kf3EKP3IJ/3MJvzQJfvUJPrZJPndJfjhJfbmJvXqJ/PvJ/HzJvD3I/////FdOAUAAAABYktHRGNcvi2qAAAAB3RJTUUH4wISEh4nsj3yUgAAAIl6VFh0UmF3IHByb2ZpbGUgdHlwZSBleGlmAAAImVWO0Q3DMAhE/5kiI2DAB4xTRYnUDTp+cJzK7fuA0wkO6Pi8T9oGjYWseyABLiwt5VUieKLMTbiNXnXydG2lZNmkMgUynG0N2uN/6YrA6eaOjh27VLocKhpVa49GKo83coV43D/U2X//1j/QBUTJLDCZZckEAAAAbElEQVQI12NgYGRiZmFlY+fg5OLm4eXjFxAUEhYRFROXkJSSlpGVk1dQVFJWUVVT19DU0tbR1dM3MDQyNjE1M7ewtLK2sbWzd3B0cnZxdXP38PTy9vH18w8IDAoOCQ0Lj4iMio6JjYtPSEwCAHgmEvTi4/F5AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAyLTE4VDE4OjMwOjM5KzAxOjAwqVY+vQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMi0xOFQxODozMDozOSswMTowMNgLhgEAAAAWdEVYdGV4aWY6RXhpZkltYWdlTGVuZ3RoADl2GPUTAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADg4OE4hyKYAAAASdEVYdGV4aWY6RXhpZk9mZnNldAA2Njd3Z2EAAAAddEVYdGV4aWY6U29mdHdhcmUAU2hvdHdlbGwgMC4yOC40Lr5VtAAAAABJRU5ErkJggg==')));
-  textureMaps.set('magma',
-    new THREE.TextureNode(textureLoader.load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAABCAMAAAD92eD2AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAEsUExURQEABQEBCAICDQQDEwYFGAgGHQoIIg0KKBAMLhMNMxYPORkQQB0RRiARTCMSUigSWSwRXzARZDUQaTkPbj4PckIPdUYQd0sQeU8Se1MTfFcVflsWfl8Yf2MZgGcbgGsdgW8egXMggXcigXsjgn8lgoMmgYgngYwpgZAqgZQsgJgtgJwuf6Ewf6Uxfqkzfa00fLE1e7Y2ero4eL46d8I7dcY9c8s/cs9AcNNDbtdFbNpHat5JaOJNZuVQZOhTYutXYe1aX/BeXvJjXPRnXPVsXPdwXPh2XPl6Xfp/XvuEYPyJYfyNZP2TZv2Yaf6cbP6hbv6mcv6rdf6weP61fP65f/6+g/7Dh/7Ii/7NkP7RlP7WmP3anf3gof3kpv3pqvztr/zytPz3ufz7vf///0QblSkAAAABYktHRGNcvi2qAAAAB3RJTUUH4wISEh8m3CHzhQAAAIl6VFh0UmF3IHByb2ZpbGUgdHlwZSBleGlmAAAImVWO0Q3DMAhE/5kiI2DAB4xTRYnUDTp+cJzK7fuA0wkO6Pi8T9oGjYWseyABLiwt5VUieKLMTbiNXnXydG2lZNmkMgUynG0N2uN/6YrA6eaOjh27VLocKhpVa49GKo83coV43D/U2X//1j/QBUTJLDCZZckEAAAAbElEQVQI12NgYGRiZmFlY+fg5OLm4eXjFxAUEhYRFROXkJSSlpGVk1dQVFJWUVVT19DU0tbR1dM3MDQyNjE1M7ewtLK2sbWzd3B0cnZxdXP38PTy9vH18w8IDAoOCQ0Lj4iMio6JjYtPSEwCAHgmEvTi4/F5AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAyLTE4VDE4OjMxOjM4KzAxOjAw4ONeNwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMi0xOFQxODozMTozOCswMTowMJG+5osAAAAWdEVYdGV4aWY6RXhpZkltYWdlTGVuZ3RoADl2GPUTAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADg4OE4hyKYAAAASdEVYdGV4aWY6RXhpZk9mZnNldAA2Njd3Z2EAAAAddEVYdGV4aWY6U29mdHdhcmUAU2hvdHdlbGwgMC4yOC40Lr5VtAAAAABJRU5ErkJggg==')));
-  textureMaps.set('inferno',
-    new THREE.TextureNode(textureLoader.load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAABCAMAAAD92eD2AAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAEsUExURQEABQEBCAICDgQDEwYEGQkGHgsHJQ4JKxIKMRULNhgMPRwMQyEMSSUMTykLVS4KWjMKXjcJYjsJZEAKZ0QKaUkLak0NbFEObFUPbVkRbl0SbmEUbmYVbmoXbm4YbnIabnYbbnodbX4ebYIgbIcha4siao8kaZMmZ5cnZpspZJ8qY6MsYactX6svXq8xW7MzWrc1V7s2VL85UsI7T8Y9TclASs1CSNBFRdRIQtdLP9pOPN1ROeBVNuNYM+VcMOhfLepjKuxnJ+5rI/BwIPJ0HPR4GfV8FveBEviFD/mKC/mOCfqUB/uYBvudB/yiCfynDPyrEPyxFfu2Gvu7IPrAJvrFLPnJM/jPOvfUQvXZSfTeUvPjWvLoZPHsb/HxefP0hPT4j/f7mfv+ov///xA1q/4AAAABYktHRGNcvi2qAAAAB3RJTUUH4wISEh8MB5o6UwAAAIl6VFh0UmF3IHByb2ZpbGUgdHlwZSBleGlmAAAImVWO0Q3DMAhE/5kiI2DAB4xTRYnUDTp+cJzK7fuA0wkO6Pi8T9oGjYWseyABLiwt5VUieKLMTbiNXnXydG2lZNmkMgUynG0N2uN/6YrA6eaOjh27VLocKhpVa49GKo83coV43D/U2X//1j/QBUTJLDCZZckEAAAAbElEQVQI12NgYGRiZmFlY+fg5OLm4eXjFxAUEhYRFROXkJSSlpGVk1dQVFJWUVVT19DU0tbR1dM3MDQyNjE1M7ewtLK2sbWzd3B0cnZxdXP38PTy9vH18w8IDAoOCQ0Lj4iMio6JjYtPSEwCAHgmEvTi4/F5AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTAyLTE4VDE4OjMxOjEyKzAxOjAwBrYGBAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wMi0xOFQxODozMToxMiswMTowMHfrvrgAAAAWdEVYdGV4aWY6RXhpZkltYWdlTGVuZ3RoADl2GPUTAAAAF3RFWHRleGlmOkV4aWZJbWFnZVdpZHRoADg4OE4hyKYAAAASdEVYdGV4aWY6RXhpZk9mZnNldAA2Njd3Z2EAAAAddEVYdGV4aWY6U29mdHdhcmUAU2hvdHdlbGwgMC4yOC40Lr5VtAAAAABJRU5ErkJggg==')));
-  return textureMaps;
-};
 
-let textureMapsNodes = loadTextureMapsNodes();
+let getOperatornode = function(a, b, operator) {
+  if (operator == 'REPLACE') {
+    return b;
+  }
 
+  let operation;
+
+  switch (operator) {
+    case 'SUB':
+      operation = THREE.OperatorNode.SUB;
+      break;
+    case 'ADD':
+      operation = THREE.OperatorNode.ADD;
+      break;
+    case 'DIV':
+      operation = THREE.OperatorNode.DIV;
+      break;
+    default:
+      operation = THREE.OperatorNode.ADD;
+      break;
+  }
+
+  new THREE.OperatorNode(a, b, operation);
+}
 
 /**
  * Purely abstract class, base for DataBlock and PlugInBlock
  *
  * Contains all general-purpose features related to:
  * - mesh simple transformations
- * - isocolor handling
  * - material assembly
  * - block tree management
  */
@@ -49,8 +54,6 @@ class Block {
     this._visible = true;
     this._processed = false;
     this._wireframe = false;
-    this._colored = false;
-    this._colorMap = 'viridis';
 
     this._position = [0.0, 0.0, 0.0];
     this._rotation = [0.0, 0.0, 0.0];
@@ -182,282 +185,6 @@ class Block {
       this._wireframe = wireframe;
 
       this.buildMaterials();
-    }
-  }
-
-  /**
-   * Initialization of isocolor node
-   */
-  initIsocolor () {
-    // ColorMaps (textures used for iso-color)
-    this._textureMapsNodes = textureMapsNodes;
-
-    // IsoColor node (function used in shaders for iso-color)
-    this._isoColor = new THREE.FunctionNode([
-      'vec3 isoColorFunc(sampler2D texColorMap, \
-        float colorMapMin, float colorMapMax,\
-        float data){',
-      '  return vec3(texture2D(\
-          texColorMap,\
-          vec2(( data - colorMapMin ) / ( colorMapMax - colorMapMin ),\
-          0.0)));',
-      '}'].join('\n')
-    );
-
-    this._isoColorCall = new THREE.FunctionCallNode(this._isoColor);
-
-    // Set visualized data for iso-color
-    if (this._visualizedData === undefined) {
-      this._visualizedData = Object.keys(this.data)[0];
-    }
-    if (this._visualizedComponent === undefined) {
-      if (this.data[this._visualizedData] !== undefined) {
-        this._visualizedComponent = Object.keys(
-          this.data[this._visualizedData])[0];
-      } else {
-        throw new Error(`"${this._visualizedData}" is not a known data`);
-      }
-    }
-
-    // Set dataMin dataMax (bounds for colorMapMin and colorMapMax)
-    // Set colorMapMin and colorMapMax nodes (bounds for iso-color)
-    this._dataMin = this.getComponentMin(
-      this._visualizedData,
-      this._visualizedComponent
-    );
-    this._dataMax = this.getComponentMax(
-      this._visualizedData,
-      this._visualizedComponent
-    );
-    this._colorMapMinNode = new THREE.FloatNode(this._dataMin);
-    this._colorMapMaxNode = new THREE.FloatNode(this._dataMax);
-
-    if (!this._colorMapMin) {
-      this._colorMapMin = this._dataMin;
-    }
-    if (!this._colorMapMax) {
-      this._colorMapMax = this._dataMax;
-    }
-    // Check validity of _colorMapMin and _colorMapMax
-    this.colorMapMin = this._colorMapMin;
-    this.colorMapMax = this._colorMapMax;
-
-    // Attribute node ('data' input in shader iso-color function)
-    this._isoColorInputData = this.getComponentNode(
-      this._visualizedData,
-      this._visualizedComponent
-    );
-
-    this._isoColorCall.inputs.data = this._isoColorInputData;
-    this._isoColorCall.inputs.colorMapMin = this._colorMapMinNode;
-    this._isoColorCall.inputs.colorMapMax = this._colorMapMaxNode;
-
-    // Check validity of _colorMap
-    this.colorMap = this._colorMap;
-
-    this._isoColorCall.inputs.texColorMap =
-      this._textureMapsNodes.get(this._colorMap);
-  }
-
-  /**
-   * Get colored status
-   * @return {boolean} True if meshes are colored using isoColor, false
-   * if meshes are rendered gray
-   */
-  get colored () { return this._colored; }
-
-  /**
-   * Set colored status
-   * @param {boolean} colorStatus - True if meshes are colored using
-   * isoColor, false if meshes are rendered gray
-   */
-  set colored (colorStatus) {
-    if (this._processed) {
-      if (this._colored != colorStatus) {
-        this._colored = colorStatus;
-
-        this.buildMaterials();
-      }
-    } else {
-      this._colored = colorStatus;
-    }
-  }
-
-  /**
-   * Get colorMapMin
-   * @return {number} Minimum bound for color mapping
-   */
-  get colorMapMin () { return this._colorMapMin; }
-
-  /**
-   * Set colorMapMin
-   * @param {number} value - Value of minimum bound for color mapping,
-   * it must be in [dataMin, colorMapMax], otherwise it will be setted
-   * to dataMin
-   */
-  set colorMapMin (value) {
-    if (this._processed) {
-      if (value <= this._colorMapMax && value >= this._dataMin) {
-        this._colorMapMin = value;
-
-        // Update uniform value in shaders (will update the view)
-        this._colorMapMinNode.number = value;
-      } else {
-        this._colorMapMin = this._dataMin;
-
-        // Update uniform value in shaders (will update the view)
-        this._colorMapMinNode.number = this._dataMin;
-      }
-    } else {
-      // This value will be validated in this.initIsocolor()
-      this._colorMapMin = value;
-    }
-  }
-
-  /**
-   * Get colorMapMax
-   * @return {number} Maximum bound for color mapping
-   */
-  get colorMapMax () { return this._colorMapMax; }
-
-  /**
-   * Set colorMapMax
-   * @param {number} value - Value of maximum bound for color mapping,
-   * it must be in [colorMapMin, dataMax], otherwise it will be setted
-   * to dataMax
-   */
-  set colorMapMax (value) {
-    if (this._processed) {
-      if (value >= this._colorMapMin && value <= this._dataMax) {
-        this._colorMapMax = value;
-
-        // Update uniform value in shaders (will update the view)
-        this._colorMapMaxNode.number = value;
-      } else {
-        this._colorMapMax = this._dataMax;
-
-        // Update uniform value in shaders (will update the view)
-        this._colorMapMaxNode.number = this._dataMax;
-      }
-    } else {
-      // This value will be validated in this.initIsocolor()
-      this._colorMapMax = value;
-    }
-  }
-
-  /**
-   * Add new colorMap
-   * @param {string} url - url of the new color map, can be a data url
-   * @param {string} name - Name of your new color map, url by default
-   */
-  addColorMap (url, name = '') {
-    let textureLoader = new THREE.TextureLoader();
-    let texture = new THREE.TextureNode(textureLoader.load(url));
-
-    let colorMapName = name == '' ? url : name;
-    textureMapsNodes.set(colorMapName, texture);
-  }
-
-  /**
-   * Get color map
-   * @return {string} The name of currently used color map for color
-   * mapping
-   */
-  get colorMap () { return this._colorMap; }
-
-  /**
-   * Set color map
-   * @param {string} name - Name of the color map that you want to use
-   */
-  set colorMap (name) {
-    if (this._processed) {
-      if (this._textureMapsNodes.get(name)) {
-        this._isoColorCall.inputs.texColorMap =
-          this._textureMapsNodes.get(name);
-        this._colorMap = name;
-
-        // Build materials
-        this.buildMaterials();
-      } else { throw new Error(`Color map "${name}" does not exist`); }
-    } else {
-      // This value will be validated in this.initIsocolor()
-      this._colorMap = name;
-    }
-  }
-
-  /**
-   * Get visualized data
-   * @return {string} The name of currently visualized data
-   */
-  get visualizedData () { return this._visualizedData; }
-
-  /**
-   * Get visualized component
-   * @return {string} The name of currently visualized component
-   */
-  get visualizedComponent () { return this._visualizedComponent; }
-
-  /**
-   * Set visualized data
-   * @param {string} dataName - Name of the data that you want to
-   * visualize with color mapping
-   */
-  set visualizedData (dataName) {
-    if (this._processed) {
-      let componentName;
-
-      Object.keys(this.data).forEach((_dataName) => {
-        if (_dataName == dataName) {
-          componentName = Object.keys(this.data[_dataName])[0];
-        }
-      });
-
-      this._updateVisualizedDataComponent(dataName, componentName);
-    } else { this._visualizedData = dataName; }
-  }
-
-  /**
-   * Set visualized component
-   * @param {string} componentName - Name of the component that you want
-   * to visualize with color mapping
-   */
-  set visualizedComponent (componentName) {
-    this._updateVisualizedDataComponent(
-      this._visualizedData,
-      componentName
-    );
-  }
-
-  /**
-   * Update color mapping with a new visualized component data
-   */
-  _updateVisualizedDataComponent (dataName, componentName) {
-    if (this._processed) {
-      let componentNode = this.getComponentNode(dataName, componentName);
-
-      // Update colorMapMin and colorMapMax
-      this._dataMin = this.getComponentMin(dataName, componentName);
-      this._dataMax = this.getComponentMax(dataName, componentName);
-      this._colorMapMin = this._dataMin;
-      this._colorMapMax = this._dataMax;
-
-      // Update uniform values in shaders (will update the view)
-      this._colorMapMinNode.number = this._dataMin;
-      this._colorMapMaxNode.number = this._dataMax;
-
-      // Update data input (require to build materials, as we change the
-      // shader)
-      this._isoColorCall.inputs.data = componentNode;
-
-      //
-      this._visualizedData = dataName;
-      this._visualizedComponent = componentName;
-
-      // Build materials
-      this.buildMaterials();
-    } else {
-      this._visualizedData = dataName;
-      this._visualizedComponent = componentName;
     }
   }
 
@@ -676,6 +403,7 @@ class Block {
 
       let position = new THREE.PositionNode();
       let alpha = new THREE.FloatNode(1.0);
+      let color = new THREE.ColorNode(0xEEEEEE)
 
       // Compute transformations
       material._positionVaryingNodes.forEach((varNode) => {
@@ -688,57 +416,44 @@ class Block {
 
       let operator;
       material._transformNodes.forEach((transNode) => {
-        switch (transNode.get('operator')) {
-          case 'SUB':
-            operator = THREE.OperatorNode.SUB;
-            break;
-          case 'MUL':
-            operator = THREE.OperatorNode.MUL;
-            break;
-          case 'DIV':
-            operator = THREE.OperatorNode.DIV;
-            break;
-          default:
-            operator = THREE.OperatorNode.ADD;
-            break;
-        }
-
-        position = new THREE.OperatorNode(
+        position = getOperatornode(
           position,
           transNode.get('node'),
-          operator
+          getOperatornode(transNode.get('operator'))
         );
       });
 
       // Compute alphas
-      material._alphaVaryingNodes.forEach((alpVarNode) => {
+      material._alphaVaryingNodes.forEach((alphaVarNode) => {
         alpha = new THREE.OperatorNode(
           alpha,
-          alpVarNode,
+          alphaVarNode,
           THREE.OperatorNode.ADD
         );
       });
 
-      material._alphaNodes.forEach((alpNode) => {
-        switch (alpNode.get('operator')) {
-          case 'SUB':
-            operator = THREE.OperatorNode.SUB;
-            break;
-          case 'ADD':
-            operator = THREE.OperatorNode.ADD;
-            break;
-          case 'DIV':
-            operator = THREE.OperatorNode.DIV;
-            break;
-          default:
-            operator = THREE.OperatorNode.MUL;
-            break;
-        }
-
-        alpha = new THREE.OperatorNode(
+      material._alphaNodes.forEach((alphaNode) => {
+        alpha = getOperatornode(
           alpha,
-          alpNode.get('node'),
-          operator
+          alphaNode.get('node'),
+          getOperatornode(alphaNode.get('operator'))
+        );
+      });
+
+      // Compute alphas
+      material._colorVaryingNodes.forEach((colorVarNode) => {
+        color = new THREE.OperatorNode(
+          color,
+          colorVarNode,
+          THREE.OperatorNode.ADD
+        );
+      });
+
+      material._colorNodes.forEach((colorNode) => {
+        color = getOperatornode(
+          color,
+          colorNode.get('node'),
+          getOperatornode(colorNode.get('operator'))
         );
       });
 
@@ -759,12 +474,9 @@ class Block {
       }
 
       // Get isoColor node
-      mesh.material.color = this._colored
-        ? this._isoColorCall
-        : new THREE.ColorNode(0xEEEEEE);
-
       mesh.material.transform = position;
       mesh.material.alpha = alpha;
+      mesh.material.color = color;
       mesh.material.build();
     });
   }
