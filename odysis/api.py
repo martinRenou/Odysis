@@ -2,6 +2,7 @@ from IPython.display import display
 
 from .odysis import (
     Scene, Warp,
+    ColorMapping,
     VectorField, PointCloud,
     Clip, Slice,
     Threshold, IsoSurface
@@ -20,6 +21,14 @@ def scene(**kwargs):
     _current_scene = Scene(**kwargs)
 
     return _current_scene
+
+
+def color_mapping(**kwargs):
+    global _current_mesh
+
+    effect = ColorMapping(**kwargs)
+    _current_mesh.apply(effect)
+    return effect
 
 
 def warp(**kwargs):

@@ -107,7 +107,6 @@ let BlockModel = widgets.WidgetModel.extend({
         _model_module_version : odysis_version,
         _view_module_version : odysis_version,
         visible: true,
-        colored: true,
         _blocks: []
     })
 }, {
@@ -127,33 +126,6 @@ let BlockView = widgets.WidgetView.extend({
 
     render: function () {
         return Promise.resolve(this.create_block()).then(() => {
-            if (this.model.get('visualized_data')) {
-                this.block.visualizedData = this.model.get('visualized_data');
-            } else {
-                this.model.set('visualized_data', this.block.visualizedData || '');
-            }
-            if (this.model.get('visualized_component').length) {
-                this.block.visualizedComponent = this.model.get('visualized_component');
-            } else {
-                this.model.set('visualized_component', this.block.visualizedComponent || []);
-            }
-            if (this.model.get('colormap')) {
-                this.block.colorMap = this.model.get('colormap');
-            } else {
-                this.model.set('colormap', this.block.colorMap);
-            }
-            if (this.model.get('colormap_min')) {
-                this.block.colorMapMin = this.model.get('colormap_min');
-            } else {
-                this.model.set('colormap_min', this.block.colorMapMin);
-            }
-            if (this.model.get('colormap_max')) {
-                this.block.colorMapMax = this.model.get('colormap_max');
-            } else {
-                this.model.set('colormap_max', this.block.colorMapMax);
-            }
-            this.model.save_changes();
-
             this.model_events();
 
             this.block_views.update(this.model.get('_blocks'));
@@ -163,24 +135,6 @@ let BlockView = widgets.WidgetView.extend({
     model_events: function () {
         this.model.on('change:visible', () => {
             this.block.visible = this.model.get('visible');
-        });
-        this.model.on('change:colored', () => {
-            this.block.colored = this.model.get('colored');
-        });
-        this.model.on('change:visualized_data', () => {
-            this.block.visualizedData = this.model.get('visualized_data');
-        });
-        this.model.on('change:visualized_component', () => {
-            this.block.visualizedComponent = this.model.get('visualized_component');
-        });
-        this.model.on('change:colormap', () => {
-            this.block.colorMap = this.model.get('colormap');
-        });
-        this.model.on('change:colormap_max', () => {
-            this.block.colorMapMax = this.model.get('colormap_max');
-        });
-        this.model.on('change:colormap_min', () => {
-            this.block.colorMapMin = this.model.get('colormap_min');
         });
         this.model.on('change:_blocks', () => {
             this.block_views.update(this.model.get('_blocks'));
@@ -236,7 +190,6 @@ let MeshView = BlockView.extend({
             this.model.get('tetras')
         ).then(((block) => {
             this.block = block;
-            block.colored = true;
 
             // Compute scale
             let bb = this.model.get('bounding_box');
@@ -320,6 +273,55 @@ let PluginBlockView = BlockView.extend({
             this.block.inputComponents = this.model.get('input_components');
         });
     },
+});
+
+let ColorMappingModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'ColorMappingModel',
+        _view_name : 'ColorMappingView',
+        colormap: 'viridis',
+        colormap_min: null,
+        colormap_max: null
+    })
+});
+
+let ColorMappingView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('ColorMapping', this.parent_view.block).then((block) => {
+            this.block = block;
+
+            if (this.model.get('colormap')) {
+                this.block.colorMap = this.model.get('colormap');
+            } else {
+                this.model.set('colormap', this.block.colorMap);
+            }
+            if (this.model.get('colormap_min')) {
+                this.block.colorMapMin = this.model.get('colormap_min');
+            } else {
+                this.model.set('colormap_min', this.block.colorMapMin);
+            }
+            if (this.model.get('colormap_max')) {
+                this.block.colorMapMax = this.model.get('colormap_max');
+            } else {
+                this.model.set('colormap_max', this.block.colorMapMax);
+            }
+            this.model.save_changes();
+        });
+    },
+
+    model_events: function () {
+        ColorMappingView.__super__.model_events.apply(this, arguments);
+
+        this.model.on('change:colormap', () => {
+            this.block.colorMap = this.model.get('colormap');
+        });
+        this.model.on('change:colormap_max', () => {
+            this.block.colorMapMax = this.model.get('colormap_max');
+        });
+        this.model.on('change:colormap_min', () => {
+            this.block.colorMapMin = this.model.get('colormap_min');
+        });
+    }
 });
 
 let WarpModel = PluginBlockModel.extend({
@@ -570,6 +572,8 @@ module.exports = {
     BlockView: BlockView,
     PluginBlockModel: PluginBlockModel,
     PluginBlockView: PluginBlockView,
+    ColorMappingModel: ColorMappingModel,
+    ColorMappingView: ColorMappingView,
     WarpModel: WarpModel,
     WarpView: WarpView,
     VectorFieldModel: VectorFieldModel,

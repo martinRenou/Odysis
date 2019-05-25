@@ -3,7 +3,7 @@
  * **/
 
 let PlugInBlock = require('../PlugInBlock');
-let THREE = require('../three');
+let THREE = require('../../three');
 
 /**
  * Load texture files as color maps

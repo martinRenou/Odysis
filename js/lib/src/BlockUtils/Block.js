@@ -22,12 +22,15 @@ let getOperatornode = function(a, b, operator) {
     case 'DIV':
       operation = THREE.OperatorNode.DIV;
       break;
+    case 'MUL':
+      operation = THREE.OperatorNode.MUL;
+      break;
     default:
-      operation = THREE.OperatorNode.ADD;
+      throw new Error(`"${operator}" is not a known shader operator`);
       break;
   }
 
-  new THREE.OperatorNode(a, b, operation);
+  return new THREE.OperatorNode(a, b, operation);
 }
 
 /**
@@ -419,11 +422,11 @@ class Block {
         position = getOperatornode(
           position,
           transNode.get('node'),
-          getOperatornode(transNode.get('operator'))
+          transNode.get('operator')
         );
       });
 
-      // Compute alphas
+      // Compute alpha
       material._alphaVaryingNodes.forEach((alphaVarNode) => {
         alpha = new THREE.OperatorNode(
           alpha,
@@ -436,11 +439,11 @@ class Block {
         alpha = getOperatornode(
           alpha,
           alphaNode.get('node'),
-          getOperatornode(alphaNode.get('operator'))
+          alphaNode.get('operator')
         );
       });
 
-      // Compute alphas
+      // Compute color
       material._colorVaryingNodes.forEach((colorVarNode) => {
         color = new THREE.OperatorNode(
           color,
@@ -453,7 +456,7 @@ class Block {
         color = getOperatornode(
           color,
           colorNode.get('node'),
-          getOperatornode(colorNode.get('operator'))
+          colorNode.get('operator')
         );
       });
 
