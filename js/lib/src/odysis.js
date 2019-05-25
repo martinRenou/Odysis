@@ -555,6 +555,8 @@ let IsoSurfaceView = PluginBlockView.extend({
 });
 
 module.exports = {
+    FixedFloatSliderModel: slider.FixedFloatSliderModel,
+    FixedFloatSliderView: slider.FixedFloatSliderView,
     FixedFloatRangeSliderModel: slider.FixedFloatRangeSliderModel,
     FixedFloatRangeSliderView: slider.FixedFloatRangeSliderView,
 

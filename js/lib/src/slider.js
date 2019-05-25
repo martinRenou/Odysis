@@ -4,28 +4,8 @@ let _ = require('lodash');
 
 let odysis_version = '0.1.0';
 
-
-let FixedFloatRangeSliderModel = widgets_ctrl.FloatRangeSliderModel.extend({
-    defaults: _.extend({}, widgets_ctrl.FloatRangeSliderModel.prototype.defaults, {
-        _model_name : 'FixedFloatRangeSliderModel',
-        _view_name : 'FixedFloatRangeSliderView',
-        _model_module : 'odysis',
-        _view_module : 'odysis',
-        _model_module_version : odysis_version,
-        _view_module_version : odysis_version
-    })
-});
-
-let FixedFloatRangeSliderView = widgets_ctrl.FloatRangeSliderView.extend({
-    render() {
-        FixedFloatRangeSliderView.__super__.render.apply(this, arguments);
-
-        this.$slider.slider('option', 'min', 0);
-        this.$slider.slider('option', 'max', 1);
-    },
-
+let FixedFloatSliderBaseView = {
     update: function(options) {
-        // FixedFloatRangeSliderView.__super__.update.apply(this, options);
         if (options === undefined || options.updated_view !== this) {
             let jquery_slider_keys = ['step', 'disabled'];
             let that = this;
@@ -75,32 +55,11 @@ let FixedFloatRangeSliderView = widgets_ctrl.FloatRangeSliderView.extend({
             }
         }
 
-        this.$slider.slider('option', 'range', true);
         // values for the range case are validated python-side in
         // _Bounded{Int,Float}RangeWidget._validate
         let value = this.model.get('value');
 
         this.readout.textContent = this.valueToString(value);
-
-        value = value.map(x => this.scale(x));
-        this.$slider.slider('option', 'values', value);
-    },
-
-    handleSliderChange: function(e, ui) {
-        let actual_value = ui.values.map(x => this._validate_slide_value(x));
-        this.readout.textContent = this.valueToString(actual_value);
-
-        // Only persist the value while sliding if the continuous_update
-        // trait is set to true.
-        if (this.model.get('continuous_update')) {
-            this.handleSliderChanged(e, ui);
-        }
-    },
-
-    handleSliderChanged: function(e, ui) {
-        let actual_value = ui.values.map(x => this._validate_slide_value(x));
-        this.model.set('value', actual_value, {updated_view: this});
-        this.touch();
     },
 
     _validate_slide_value: function(x) {
@@ -120,9 +79,101 @@ let FixedFloatRangeSliderView = widgets_ctrl.FloatRangeSliderView.extend({
 
         return min + x * (max - min);
     }
+};
+
+let FixedFloatSliderModel = widgets_ctrl.FloatSliderModel.extend({
+    defaults: _.extend({}, widgets_ctrl.FloatSliderModel.prototype.defaults, {
+        _model_name : 'FixedFloatSliderModel',
+        _view_name : 'FixedFloatSliderView',
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version
+    })
+});
+
+let FixedFloatSliderView = widgets_ctrl.FloatSliderView.extend(FixedFloatSliderBaseView).extend({
+    render: function() {
+        FixedFloatSliderView.__super__.render.apply(this, arguments);
+
+        this.$slider.slider('option', 'min', 0);
+        this.$slider.slider('option', 'max', 1);
+    },
+
+    update: function(options) {
+        FixedFloatSliderView.__super__.update.apply(this, arguments);
+
+        this.$slider.slider('option', 'range', false);
+
+        let value = this.model.get('value');
+
+        this.$slider.slider('option', 'value', this.scale(value));
+    },
+
+    handleSliderChange: function(e, ui) {
+        this.readout.textContent = this.valueToString(this._validate_slide_value(ui.value));
+
+        if (this.model.get('continuous_update')) {
+            this.handleSliderChanged(e, ui);
+        }
+    },
+
+    handleSliderChanged: function(e, ui) {
+        this.model.set('value', this._validate_slide_value(ui.value), {updated_view: this});
+        this.touch();
+    }
+});
+
+let FixedFloatRangeSliderModel = widgets_ctrl.FloatRangeSliderModel.extend({
+    defaults: _.extend({}, widgets_ctrl.FloatRangeSliderModel.prototype.defaults, {
+        _model_name : 'FixedFloatRangeSliderModel',
+        _view_name : 'FixedFloatRangeSliderView',
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version
+    })
+});
+
+let FixedFloatRangeSliderView = widgets_ctrl.FloatRangeSliderView.extend(FixedFloatSliderBaseView).extend({
+    render: function() {
+        FixedFloatRangeSliderView.__super__.render.apply(this, arguments);
+
+        this.$slider.slider('option', 'min', 0);
+        this.$slider.slider('option', 'max', 1);
+    },
+
+    update: function(options) {
+        FixedFloatRangeSliderView.__super__.update.apply(this, arguments);
+
+        this.$slider.slider('option', 'range', true);
+
+        let value = this.model.get('value');
+        this.readout.textContent = this.valueToString(value);
+
+        value = value.map(x => this.scale(x));
+        this.$slider.slider('option', 'values', value);
+    },
+
+    handleSliderChange: function(e, ui) {
+        let actual_value = ui.values.map(x => this._validate_slide_value(x));
+        this.readout.textContent = this.valueToString(actual_value);
+
+        if (this.model.get('continuous_update')) {
+            this.handleSliderChanged(e, ui);
+        }
+    },
+
+    handleSliderChanged: function(e, ui) {
+        let actual_value = ui.values.map(x => this._validate_slide_value(x));
+        this.model.set('value', actual_value, {updated_view: this});
+        this.touch();
+    }
 });
 
 module.exports = {
+    FixedFloatSliderModel: FixedFloatSliderModel,
+    FixedFloatSliderView: FixedFloatSliderView,
     FixedFloatRangeSliderModel: FixedFloatRangeSliderModel,
     FixedFloatRangeSliderView: FixedFloatRangeSliderView
 };

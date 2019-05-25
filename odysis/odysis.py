@@ -9,7 +9,7 @@ from ipywidgets import (
     widget_serialization,
     DOMWidget, Widget, register,
     Color,
-    Dropdown, FloatSlider, FloatText, IntSlider, Label,
+    Dropdown, FloatText, IntSlider, Label,
     ToggleButtons,
     link,
     VBox, HBox
@@ -20,7 +20,7 @@ from .vtk_loader import (
     load_vtk, FLOAT32, UINT32,
     get_ugrid_vertices, get_ugrid_faces, get_ugrid_tetras, get_ugrid_data
 )
-from .slider import FloatRangeSlider
+from .slider import FloatSlider, FloatRangeSlider
 
 odysis_version = '^0.1.0'
 
@@ -807,10 +807,8 @@ class IsoSurface(PluginBlock):
         self.value = (max + min) / 2.
 
         if self.initialized_widgets:
-
             self.value_wid.min = min
             self.value_wid.max = max
-            self.value_wid.value = self.value
 
     def _validate_parent(self, parent):
         block = parent
