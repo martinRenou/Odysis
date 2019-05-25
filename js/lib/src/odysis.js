@@ -324,6 +324,25 @@ let ColorMappingView = PluginBlockView.extend({
     }
 });
 
+let GridModel = PluginBlockModel.extend({
+    defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
+        _model_name : 'GridModel',
+        _view_name : 'GridView'
+    })
+});
+
+let GridView = PluginBlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addBlock('Grid', this.parent_view.block).then((block) => {
+            this.block = block;
+        });
+    },
+
+    model_events: function () {
+        GridView.__super__.model_events.apply(this, arguments);
+    }
+});
+
 let WarpModel = PluginBlockModel.extend({
     defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
         _model_name : 'WarpModel',
@@ -574,6 +593,8 @@ module.exports = {
     PluginBlockView: PluginBlockView,
     ColorMappingModel: ColorMappingModel,
     ColorMappingView: ColorMappingView,
+    GridModel: GridModel,
+    GridView: GridView,
     WarpModel: WarpModel,
     WarpView: WarpView,
     VectorFieldModel: VectorFieldModel,

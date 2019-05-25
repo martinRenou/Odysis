@@ -709,6 +709,13 @@ class PlugInBlock extends Block {
   }
 
   /**
+   * Return the current color node
+   */
+  getCurrentColorNode () {
+    return this._meshes[0].material.color;
+  }
+
+  /**
    * Create a varying of the current alpha canal
    */
   getCurrentAlphaNode () {

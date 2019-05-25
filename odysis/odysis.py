@@ -91,6 +91,11 @@ class Block(Widget, BlockType):
         self.apply(effect)
         return effect
 
+    def grid(self, *args, **kwargs):
+        effect = Grid(*args, **kwargs)
+        self.apply(effect)
+        return effect
+
     def warp(self, *args, **kwargs):
         effect = Warp(*args, **kwargs)
         self.apply(effect)
@@ -389,6 +394,12 @@ class ColorMapping(PluginBlock):
             self.colormapslider_wid.min = min
             self.colormapslider_wid.max = max
             self.colormapslider_wid.value = [min, max]
+
+
+@register
+class Grid(PluginBlock):
+    _view_name = Unicode('GridView').tag(sync=True)
+    _model_name = Unicode('GridModel').tag(sync=True)
 
 
 @register
