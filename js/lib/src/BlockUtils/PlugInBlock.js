@@ -43,12 +43,6 @@ class PlugInBlock extends Block {
     // Fill tree of blocks
     this.parentBlock.addChildBlock(this);
 
-    // Catch previous block color
-    //this._colored = this.parentBlock._colored;
-    this._colorMap = this.parentBlock._colorMap;
-    this._colorMapMin = this.parentBlock._colorMapMin;
-    this._colorMapMax = this.parentBlock._colorMapMax;
-
     // Catch previous block transformations
     this._position = [
       this.parentBlock._position[0],
@@ -206,12 +200,6 @@ class PlugInBlock extends Block {
       this._visualizedComponent =
         this.parentBlock._visualizedComponent;
     }
-
-    // Init isocolor
-    this.initIsocolor();
-
-    // Color meshes
-    this.colored = this._colored || this.parentBlock.colored;
 
     // Set if meshes are visible or not
     if (this.isVisible !== undefined) {
@@ -502,6 +490,48 @@ class PlugInBlock extends Block {
           mesh.material._alphaNodes.splice(i, 1);
           break;
         }
+      }
+    });
+  }
+
+  /**
+   * Add color node for material
+   * @param {string} operator - Operator that will be used to compute
+   * color values together. Allowed values are 'ADD', 'SUB', 'MUL'
+   * or 'DIV'.
+   * @param {THREE.GLNode} colorNode - A node containing the second
+   * operand of the operation.
+   */
+  addColorNode (operator, colorNode) {
+    let map = new Map();
+    map.set('operator', operator);
+    map.set('node', colorNode);
+
+    this._meshes.forEach((mesh) => {
+      mesh.material._colorNodes.push(map);
+    });
+    this.buildMaterials();
+  }
+
+  /**
+   * Replace an old color node with a new one
+   * @param {THREE.GLNode} oldNode - The node that you want to replace
+   * @param {THREE.GLNode} newNode - The node of substitution
+   */
+  replaceColorNode(oldNode, newNode){
+    this._meshes.forEach((mesh) => {
+      mesh.material._colorNodes.forEach((colorNode) => {
+        if (colorNode.get('node') === oldNode) {
+          colorNode.set('node', newNode);
+        }
+      });
+    });
+    this.buildMaterials();
+
+    // Replace color node for children
+    this.childrenBlocks.forEach((child) => {
+      if (child._processed) {
+        child.replaceColorNode(oldNode, newNode);
       }
     });
   }

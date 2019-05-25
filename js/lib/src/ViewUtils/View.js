@@ -16,6 +16,9 @@ function registerBlockType (block) {
 
 let DataBlock = require('../BlockUtils/DataBlock');
 
+let ColorMapping = require('../BlockUtils/PlugIns/ColorMapping');
+registerBlockType(ColorMapping);
+
 let Threshold = require('../BlockUtils/PlugIns/Threshold');
 registerBlockType(Threshold);
 

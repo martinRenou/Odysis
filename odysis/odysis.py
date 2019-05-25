@@ -70,19 +70,8 @@ class Block(Widget, BlockType):
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
     _blocks = List(Instance(BlockType)).tag(sync=True, **widget_serialization)
-    _available_visualized_data = List([])
-    _available_visualized_components = List([])
 
     visible = Bool(True).tag(sync=True)
-    colored = Bool(True).tag(sync=True)
-    # TODO position, rotation, scale, wireframe
-    colormap = Enum(('viridis', 'plasma', 'magma', 'inferno'), default_value='viridis').tag(sync=True)
-    colormap_min = Float().tag(sync=True)
-    colormap_max = Float().tag(sync=True)
-    visualized_data = Unicode().tag(sync=True)
-    visualized_component = Unicode().tag(sync=True)
-    visualized_component_min = Float().tag(sync=True)
-    visualized_component_max = Float().tag(sync=True)
 
     def apply(self, block):
         block._validate_parent(self)
@@ -96,6 +85,11 @@ class Block(Widget, BlockType):
     def remove(self, block):
         block._parent_block = None
         self._blocks = list([b for b in self._blocks if b.model_id != block.model_id])
+
+    def color_mapping(self, *args, **kwargs):
+        effect = ColorMapping(*args, **kwargs)
+        self.apply(effect)
+        return effect
 
     def warp(self, *args, **kwargs):
         effect = Warp(*args, **kwargs)
@@ -134,60 +128,11 @@ class Block(Widget, BlockType):
 
     def __init__(self, *args, **kwargs):
         super(Block, self).__init__(*args, **kwargs)
-        self.visualized_data_wid = None
-        self.visualized_component_wid = None
         self.colormap_wid = None
         self.colormapslider_wid = None
 
     def _validate_parent(self, parent):
         pass
-
-    def _init_isocolor_widgets(self):
-        self.visualized_data_wid = Dropdown(
-            description='Visualized data',
-            options=self._available_visualized_data,
-            value=self.visualized_data
-        )
-        self.visualized_data_wid.layout.width = 'fit-content'
-
-        self.visualized_component_wid = Dropdown(
-            description='Visualized component',
-            options=self._available_visualized_components,
-            value=self.visualized_component
-        )
-        self.visualized_component_wid.layout.width = 'fit-content'
-
-        self.colormap_wid = Dropdown(
-            description='Colormap',
-            options=['viridis', 'plasma', 'magma', 'inferno'],
-            value=self.colormap
-        )
-        self.colormap_wid.layout.width = 'fit-content'
-
-        self.colormapslider_wid = FloatRangeSlider(
-            value=[self.colormap_min, self.colormap_max],
-            min=self.visualized_component_min,
-            max=self.visualized_component_max,
-            description="Colormap bounds"
-        )
-
-        def on_range_change(change):
-            self.colormap_min = change['new'][0]
-            self.colormap_max = change['new'][1]
-
-        self.colormapslider_wid.observe(on_range_change, 'value')
-
-        link((self.colormapslider_wid, 'min'), (self, 'visualized_component_min'))
-        link((self.colormapslider_wid, 'max'), (self, 'visualized_component_max'))
-        link((self.visualized_data_wid, 'value'), (self, 'visualized_data'))
-        link((self.visualized_component_wid, 'value'), (self, 'visualized_component'))
-        link((self.colormap_wid, 'value'), (self, 'colormap'))
-
-    def _interact_isocolor(self):
-        if self.visualized_data_wid is None:
-            self._init_isocolor_widgets()
-
-        return (self.visualized_data_wid, self.visualized_component_wid, self.colormap_wid, self.colormapslider_wid)
 
 
 def _grid_data_to_data_widget(grid_data):
@@ -215,7 +160,6 @@ class Mesh(Block):
     _view_module_version = Unicode(odysis_version).tag(sync=True)
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
-    # TODO: interact with colormap/handle data change and update visualized component
     # TODO: validate vertices/faces/tetras as being 1-D array, and validate dtype
     vertices = Array(default_value=array(FLOAT32)).tag(sync=True, **array_serialization)
     faces = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
@@ -290,8 +234,6 @@ class PluginBlock(Block):
 
         self._available_input_data = [d.name for d in data]
         self.input_data = self._available_input_data[0]
-        self._available_visualized_data = [d.name for d in data]
-        self.visualized_data = self._available_visualized_data[0]
 
     @observe('input_data')
     def _update_available_components(self, change):
@@ -300,15 +242,6 @@ class PluginBlock(Block):
             if d.name == change['new']:
                 current_data = d
         self._available_input_components = [c.name for c in current_data.components] + [0]
-
-    @observe('visualized_data')
-    def _update_available_visualized_components(self, change):
-        data = self._get_data(self._parent_block)
-        for d in data:
-            if d.name == change['new']:
-                current_data = d
-        # TODO Add Magnitude support
-        self._available_visualized_components = [c.name for c in current_data.components]
 
     @observe('_available_input_components')
     def _update_input_components(self, change):
@@ -339,28 +272,6 @@ class PluginBlock(Block):
             new_components.append(available_components[dim])
 
         self.input_components = new_components
-
-    @observe('_available_visualized_components')
-    def _update_visualized_component(self, change):
-        available_visualized_components = change['new']
-
-        if self.visualized_component_wid is not None:
-            self.visualized_component_wid.options = available_visualized_components
-
-        # Check current component validity
-        if self.visualized_component in available_visualized_components:
-            return
-
-        self.visualized_component = available_visualized_components[0]
-
-    # TODO This code should not exist. This is done on the JavaScript side by
-    # SciviJS, SciviJS should trigger events for this kind of change
-    @observe('visualized_component')
-    def _update_visualized_component_bounds(self, change):
-        min, max = self._get_component_min_max(
-            self.visualized_data, self.visualized_component)
-        self.visualized_component_min = min
-        self.visualized_component_max = max
 
     def _link_dropdown(self, dropdown, dim):
         def handle_dropdown_change(change):
@@ -396,18 +307,13 @@ class PluginBlock(Block):
         link((self.input_data_wid, 'value'), (self, 'input_data'))
 
     def _interact(self):
-        isocolor_widgets = self._interact_isocolor()
-
         if self._input_data_dim is not None:
             if self.input_data_wid is None:
                 self._init_input_data_widgets()
 
-            return (
-                VBox(isocolor_widgets),
-                VBox((self.input_data_wid, HBox(self.input_components_wid)))
-            )
+            return (VBox((self.input_data_wid, HBox(self.input_components_wid))), )
 
-        return (VBox(isocolor_widgets), )
+        return ()
 
     def _get_component_min_max(self, data_name, component_name):
         data = self._get_data(self._parent_block)
@@ -418,6 +324,71 @@ class PluginBlock(Block):
                         return (c.min, c.max)
         raise RuntimeError('Unknown component {}.{}'.format(
             data_name, component_name))
+
+
+@register
+class ColorMapping(PluginBlock):
+    _view_name = Unicode('ColorMappingView').tag(sync=True)
+    _model_name = Unicode('ColorMappingModel').tag(sync=True)
+
+    _input_data_dim = Int(1)
+
+    colormap = Enum(('viridis', 'plasma', 'magma', 'inferno'), default_value='viridis').tag(sync=True)
+    colormap_min = Float().tag(sync=True)
+    colormap_max = Float().tag(sync=True)
+
+    def interact(self):
+        if not self.initialized_widgets:
+            self._init_colormapping_widgets()
+            self.initialized_widgets = True
+
+        return HBox(
+            self._interact() + (VBox((self.colormap_wid, self.colormapslider_wid)), )
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(ColorMapping, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
+        self.colormap_wid = None
+        self.colormapslider_wid = None
+
+    def _init_colormapping_widgets(self):
+        self.colormap_wid = Dropdown(
+            description='Colormap',
+            options=['viridis', 'plasma', 'magma', 'inferno'],
+            value=self.colormap
+        )
+        self.colormap_wid.layout.width = 'fit-content'
+
+        min, max = self._get_component_min_max(
+            self.input_data, self.input_components[0])
+
+        self.colormapslider_wid = FloatRangeSlider(
+            value=[self.colormap_min, self.colormap_max],
+            min=min,
+            max=max,
+            description="Colormap bounds"
+        )
+
+        def on_range_change(change):
+            self.colormap_min = change['new'][0]
+            self.colormap_max = change['new'][1]
+
+        self.colormapslider_wid.observe(on_range_change, 'value')
+
+        link((self.colormap_wid, 'value'), (self, 'colormap'))
+
+    @observe('input_components')
+    def _on_input_components_change(self, change):
+        min, max = self._get_component_min_max(
+            self.input_data, self.input_components[0])
+        self.colormap_min = min
+        self.colormap_max = max
+
+        if self.initialized_widgets:
+            self.colormapslider_wid.min = min
+            self.colormapslider_wid.max = max
+            self.colormapslider_wid.value = [min, max]
 
 
 @register

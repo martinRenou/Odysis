@@ -47,15 +47,9 @@ class DataBlock extends Block {
       this._bufferGeometry = new THREE.BufferGeometry();
       this.initBufferGeometry();
 
-      // Init iso-color effect
-      this.initIsocolor();
-
-      // Create basic material with iso-color and build material
+      // Create basic material and build it
       this._material = new THREE.StandardNodeMaterial();
       this._material.shading = THREE.FlatShading;
-      if (this._colored) {
-        this._material.color = this._isoColorCall;
-      }
       this._material.build();
 
       // Nodes for computing effects
