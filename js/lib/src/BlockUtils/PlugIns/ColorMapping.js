@@ -41,12 +41,9 @@ class ColorMapping extends PlugInBlock {
     let setters = {
       'colorMap': (name) => {
         if (this._textureMapsNodes.get(name)) {
-          this._colorMappingCall.inputs.texColorMap =
-            this._textureMapsNodes.get(name);
-          this._colorMap = name;
+          this._colorMappingCall.inputs.texColorMap = this._textureMapsNodes.get(name);
 
-          // Build materials
-          this.buildMaterials();
+          this.updateMaterial();
         } else { throw new Error(`Color map "${name}" does not exist`); }
       },
       'colorMapMin': (value) => {
@@ -76,15 +73,6 @@ class ColorMapping extends PlugInBlock {
   }
 
   _process () {
-    this._setColorMappingNode();
-
-    this.addColorNode('REPLACE', this._colorMappingCall);
-  }
-
-  /**
-   * Function that create the color node
-   */
-  _setColorMappingNode(){
     this._textureMapsNodes = textureMapsNodes
 
     this._colorMapping = new THREE.FunctionNode(
@@ -98,14 +86,8 @@ class ColorMapping extends PlugInBlock {
 
     this._colorMappingCall = new THREE.FunctionCallNode(this._colorMapping);
 
-    this._dataMin = this.getComponentMin(
-      this._inputDataName,
-      this._inputComponentNames[0]
-    );
-    this._dataMax = this.getComponentMax(
-      this._inputDataName,
-      this._inputComponentNames[0]
-    );
+    this._dataMin = this.getComponentMin(this._inputDataName, this._inputComponentNames[0]);
+    this._dataMax = this.getComponentMax(this._inputDataName, this._inputComponentNames[0]);
     this._colorMapMinNode = new THREE.FloatNode(this._dataMin);
     this._colorMapMaxNode = new THREE.FloatNode(this._dataMax);
 
@@ -113,8 +95,9 @@ class ColorMapping extends PlugInBlock {
     this._colorMappingCall.inputs.colorMapMin = this._colorMapMinNode;
     this._colorMappingCall.inputs.colorMapMax = this._colorMapMaxNode;
 
-    this._colorMappingCall.inputs.texColorMap =
-      this._textureMapsNodes.get(this._colorMap);
+    this._colorMappingCall.inputs.texColorMap = this._textureMapsNodes.get(this._colorMap);
+
+    this.addColorNode('REPLACE', this._colorMappingCall);
   }
 
   /**
@@ -128,13 +111,13 @@ class ColorMapping extends PlugInBlock {
     super._setInput(dataName, componentNames);
 
     if (this._processed && this._colorMappingCall) {
-      let oldNode = this._colorMappingCall;
+      this._dataMin = this.getComponentMin(dataName, componentNames[0]);
+      this._dataMax = this.getComponentMax(dataName, componentNames[0]);
+      this._colorMapMinNode.number = this._dataMin;
+      this._colorMapMaxNode.number = this._dataMax;
+      this._colorMappingCall.inputs.data = this._inputDataNode;
 
-      // Update the Color Node
-      this._setColorMappingNode();
-
-      // Replace the old node with the new Color Node in materials
-      this.replaceColorNode(oldNode, this._colorMappingCall);
+      this.updateMaterial();
     }
   }
 }

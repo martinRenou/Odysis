@@ -838,6 +838,14 @@ class PlugInBlock extends Block {
       child.updateGeometry(true);
     });
   }
+
+  updateMaterial () {
+    this.buildMaterials();
+
+    this.childrenBlocks.forEach((child) => {
+      child.updateMaterial();
+    });
+  }
 }
 
 /**
