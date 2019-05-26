@@ -712,7 +712,7 @@ class PlugInBlock extends Block {
    * Return the current color node
    */
   getCurrentColorNode () {
-    return this._meshes[0].material.color;
+    return this.parentBlock._meshes[0].material.color;
   }
 
   /**

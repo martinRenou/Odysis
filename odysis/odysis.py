@@ -401,6 +401,7 @@ class Grid(PluginBlock):
     _view_name = Unicode('GridView').tag(sync=True)
     _model_name = Unicode('GridModel').tag(sync=True)
 
+    axis = Enum(('x', 'y', 'z'), default_value='x').tag(sync=True)
     color = Color('black').tag(sync=True)
     step = Float().tag(sync=True)
     width = Float().tag(sync=True)
@@ -411,17 +412,24 @@ class Grid(PluginBlock):
             self.initialized_widgets = True
 
         return HBox(
-            self._interact() + (VBox((self.color_wid, self.step_wid, self.width_wid)), )
+            self._interact() + (VBox((self.axis_wid, self.color_wid, self.step_wid, self.width_wid)), )
         )
 
     def __init__(self, *args, **kwargs):
         super(Grid, self).__init__(*args, **kwargs)
         self.initialized_widgets = False
+        self.axis_wid = None
         self.color_wid = None
         self.step_wid = None
         self.width_wid = None
 
     def _init_grid_widgets(self):
+        self.axis_wid = ToggleButtons(
+            description='Axis',
+            options=['x', 'y', 'z'],
+            value=self.axis
+        )
+
         self.color_wid = ColorPicker(
             concise=True,
             description='Color',
@@ -438,6 +446,7 @@ class Grid(PluginBlock):
             value=self.width
         )
 
+        link((self.axis_wid, 'value'), (self, 'axis'))
         link((self.color_wid, 'value'), (self, 'color'))
         link((self.step_wid, 'value'), (self, 'step'))
         link((self.width_wid, 'value'), (self, 'width'))

@@ -339,6 +339,11 @@ let GridView = PluginBlockView.extend({
         return this.scene_view.view.addBlock('Grid', this.parent_view.block).then((block) => {
             this.block = block;
 
+            if (this.model.get('axis')) {
+                this.block.axis = this.model.get('axis');
+            } else {
+                this.model.set('axis', this.block.axis);
+            }
             if (this.model.get('color')) {
                 this.block.color = this.model.get('color');
             } else {
@@ -361,6 +366,9 @@ let GridView = PluginBlockView.extend({
     model_events: function () {
         GridView.__super__.model_events.apply(this, arguments);
 
+        this.model.on('change:axis', () => {
+            this.block.axis = this.model.get('axis');
+        });
         this.model.on('change:color', () => {
             this.block.color = this.model.get('color');
         });
