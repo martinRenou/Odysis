@@ -29,7 +29,7 @@ class Grid extends PlugInBlock {
         this.buildMaterials();
       },
       'step': (value) => {
-        this._gridCall.inputs.step.number = value;
+        this._gridCall.inputs.gridstep.number = value;
       },
       'width': (value) => {
         this._gridCall.inputs.width.number = value;
@@ -52,12 +52,9 @@ class Grid extends PlugInBlock {
 
   _setGridNode () {
     this._gridFunction = new THREE.FunctionNode(
-      `vec3 gridFunc(vec3 oldcolor, vec3 gridcolor, vec3 position, float step, float width){ \
-         if (mod(position.${this._axis} + width * 0.5, step) < width)                        \
-         {                                                                                   \
-           return gridcolor;                                                                 \
-         }                                                                                   \
-         return oldcolor;                                                                    \
+      `vec3 gridFunc${this._plugInID}(vec3 oldcolor, vec3 gridcolor, vec3 position, float gridstep, float width){
+         float factor = step(0.0, mod(position.${this._axis} + width * 0.5, gridstep) - width);
+         return factor * oldcolor + (1.0 - factor) * gridcolor;
        }`
     );
 
@@ -66,7 +63,7 @@ class Grid extends PlugInBlock {
     this._gridCall.inputs.oldcolor = this.getCurrentColorNode();
     this._gridCall.inputs.gridcolor = new THREE.ColorNode(this._color);
     this._gridCall.inputs.position = this.getCurrentPositionNode();
-    this._gridCall.inputs.step = new THREE.FloatNode(this._step);
+    this._gridCall.inputs.gridstep = new THREE.FloatNode(this._step);
     this._gridCall.inputs.width = new THREE.FloatNode(this._width);
   }
 }
