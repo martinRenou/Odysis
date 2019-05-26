@@ -327,7 +327,10 @@ let ColorMappingView = PluginBlockView.extend({
 let GridModel = PluginBlockModel.extend({
     defaults: _.extend({}, PluginBlockModel.prototype.defaults, {
         _model_name : 'GridModel',
-        _view_name : 'GridView'
+        _view_name : 'GridView',
+        color: 'black',
+        step: null,
+        width: null
     })
 });
 
@@ -335,11 +338,38 @@ let GridView = PluginBlockView.extend({
     create_block: function () {
         return this.scene_view.view.addBlock('Grid', this.parent_view.block).then((block) => {
             this.block = block;
+
+            if (this.model.get('color')) {
+                this.block.color = this.model.get('color');
+            } else {
+                this.model.set('color', this.block.color);
+            }
+            if (this.model.get('step')) {
+                this.block.step = this.model.get('step');
+            } else {
+                this.model.set('step', this.block.step);
+            }
+            if (this.model.get('width')) {
+                this.block.width = this.model.get('width');
+            } else {
+                this.model.set('width', this.block.width);
+            }
+            this.model.save_changes();
         });
     },
 
     model_events: function () {
         GridView.__super__.model_events.apply(this, arguments);
+
+        this.model.on('change:color', () => {
+            this.block.color = this.model.get('color');
+        });
+        this.model.on('change:step', () => {
+            this.block.step = this.model.get('step');
+        });
+        this.model.on('change:width', () => {
+            this.block.width = this.model.get('width');
+        });
     }
 });
 

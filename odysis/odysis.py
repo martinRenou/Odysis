@@ -8,7 +8,7 @@ from traittypes import Array
 from ipywidgets import (
     widget_serialization,
     DOMWidget, Widget, register,
-    Color,
+    Color, ColorPicker,
     Dropdown, FloatText, IntSlider, Label,
     ToggleButtons,
     link,
@@ -400,6 +400,47 @@ class ColorMapping(PluginBlock):
 class Grid(PluginBlock):
     _view_name = Unicode('GridView').tag(sync=True)
     _model_name = Unicode('GridModel').tag(sync=True)
+
+    color = Color('black').tag(sync=True)
+    step = Float().tag(sync=True)
+    width = Float().tag(sync=True)
+
+    def interact(self):
+        if not self.initialized_widgets:
+            self._init_grid_widgets()
+            self.initialized_widgets = True
+
+        return HBox(
+            self._interact() + (VBox((self.color_wid, self.step_wid, self.width_wid)), )
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(Grid, self).__init__(*args, **kwargs)
+        self.initialized_widgets = False
+        self.color_wid = None
+        self.step_wid = None
+        self.width_wid = None
+
+    def _init_grid_widgets(self):
+        self.color_wid = ColorPicker(
+            concise=True,
+            description='Color',
+            value=self.color
+        )
+
+        self.step_wid = FloatText(
+            description='Step',
+            value=self.step
+        )
+
+        self.width_wid = FloatText(
+            description='Width',
+            value=self.width
+        )
+
+        link((self.color_wid, 'value'), (self, 'color'))
+        link((self.step_wid, 'value'), (self, 'step'))
+        link((self.width_wid, 'value'), (self, 'width'))
 
 
 @register

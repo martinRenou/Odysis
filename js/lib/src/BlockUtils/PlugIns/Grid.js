@@ -17,33 +17,45 @@ class Grid extends PlugInBlock {
    *
    * @param {PlugInBlock} parentBlock - The block before this grid one
    */
-  constructor (parentBlock) {
+  constructor (parentBlock, color=0x000000, step=500, width=20) {
     let setters = {
-      // 'spacing': (value) => {
-      // }
+      'color': (value) => {
+        this._gridCall.inputs.gridcolor.value = new THREE.Color(value);
+        this.buildMaterials();
+      },
+      'step': (value) => {
+        this._gridCall.inputs.step.number = value;
+      },
+      'width': (value) => {
+        this._gridCall.inputs.width.number = value;
+      },
     };
 
     super(parentBlock, setters);
+
+    this._color = color;
+    this._step = step;
+    this._width = width;
   }
 
   _process () {
     this._gridFunction = new THREE.FunctionNode(
-      'vec3 gridFunc(vec3 oldcolor, vec3 gridcolor, vec3 position, float gridstep, float gridwidth){ \
-         if (mod(position.x, gridstep) < gridwidth)                                                  \
-         {                                                                                           \
-           return gridcolor;                                                                         \
-         }                                                                                           \
-         return oldcolor;                                                                            \
+      'vec3 gridFunc(vec3 oldcolor, vec3 gridcolor, vec3 position, float step, float width){ \
+         if (mod(position.x + width * 0.5, step) < width)                                                  \
+         {                                                                                   \
+           return gridcolor;                                                                 \
+         }                                                                                   \
+         return oldcolor;                                                                    \
        }'
     );
 
     this._gridCall = new THREE.FunctionCallNode(this._gridFunction);
 
     this._gridCall.inputs.oldcolor = this.getCurrentColorNode();
-    this._gridCall.inputs.gridcolor = new THREE.ColorNode(0x000000);
+    this._gridCall.inputs.gridcolor = new THREE.ColorNode(this._color);
     this._gridCall.inputs.position = this.getCurrentPositionNode();
-    this._gridCall.inputs.gridstep = new THREE.FloatNode(500);
-    this._gridCall.inputs.gridwidth = new THREE.FloatNode(20);
+    this._gridCall.inputs.step = new THREE.FloatNode(this._step);
+    this._gridCall.inputs.width = new THREE.FloatNode(this._width);
 
     this.addColorNode('REPLACE', this._gridCall);
   }
