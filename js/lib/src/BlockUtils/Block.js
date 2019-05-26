@@ -406,7 +406,7 @@ class Block {
 
       let position = new THREE.PositionNode();
       let alpha = new THREE.FloatNode(1.0);
-      let color = new THREE.ColorNode(0xEEEEEE)
+      let color = new THREE.ColorNode(0xEEEEEE);
 
       // Compute transformations
       material._positionVaryingNodes.forEach((varNode) => {

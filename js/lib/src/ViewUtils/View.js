@@ -19,6 +19,9 @@ let DataBlock = require('../BlockUtils/DataBlock');
 let ColorMapping = require('../BlockUtils/PlugIns/ColorMapping');
 registerBlockType(ColorMapping);
 
+let Grid = require('../BlockUtils/PlugIns/Grid');
+registerBlockType(Grid);
+
 let Threshold = require('../BlockUtils/PlugIns/Threshold');
 registerBlockType(Threshold);
 
