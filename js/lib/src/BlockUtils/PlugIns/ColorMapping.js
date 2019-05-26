@@ -87,15 +87,13 @@ class ColorMapping extends PlugInBlock {
   _setColorMappingNode(){
     this._textureMapsNodes = textureMapsNodes
 
-    this._colorMapping = new THREE.FunctionNode([
-      'vec3 colorMappingFunc(sampler2D texColorMap, \
-        float colorMapMin, float colorMapMax,\
-        float data){',
-      '  return vec3(texture2D(\
-          texColorMap,\
-          vec2(( data - colorMapMin ) / ( colorMapMax - colorMapMin ),\
-          0.0)));',
-      '}'].join('\n')
+    this._colorMapping = new THREE.FunctionNode(
+      `vec3 colorMappingFunc${this._plugInID}(sampler2D texColorMap, float colorMapMin, float colorMapMax, float data){
+        return vec3(texture2D(
+          texColorMap,
+          vec2(( data - colorMapMin ) / ( colorMapMax - colorMapMin ),
+          0.0)));
+      }`
     );
 
     this._colorMappingCall = new THREE.FunctionCallNode(this._colorMapping);
