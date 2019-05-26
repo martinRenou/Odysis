@@ -35,17 +35,6 @@ class Warp extends PlugInBlock {
   }
 
   _process () {
-    // Create a deformation node
-    this._setWarpNode();
-
-    // Add the node to materials
-    this.addTransformNode('ADD', this._warpTranslation);
-  }
-
-  /**
-   * Function that create the warp node
-   */
-  _setWarpNode(){
     // Create a FloatNode representing the warp factor in shaders
     this._warpFactorNode = new THREE.FloatNode(this._warpFactor);
 
@@ -55,6 +44,9 @@ class Warp extends PlugInBlock {
       this._warpFactorNode,
       THREE.OperatorNode.MUL
     );
+
+    // Add the node to materials
+    this.addTransformNode('ADD', this._warpTranslation);
   }
 
   /**
@@ -68,13 +60,8 @@ class Warp extends PlugInBlock {
     super._setInput(dataName, componentNames);
 
     if (this._processed && this._warpTranslation) {
-      let oldNode = this._warpTranslation;
-
-      // Update the Warp Node
-      this._setWarpNode();
-
-      // Replace the old node with the new Warp Node in materials
-      this.replaceTransformNode(oldNode, this._warpTranslation);
+      this._warpTranslation.a = this._inputDataNode;
+      this.updateMaterial();
     }
   }
 }
