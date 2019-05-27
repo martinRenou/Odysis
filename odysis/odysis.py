@@ -156,9 +156,8 @@ def _grid_data_to_data_widget(grid_data):
 
 
 @register
-class Mesh(Block):
+class Mesh(Widget):
     """A 3-D Mesh widget."""
-    _view_name = Unicode('MeshView').tag(sync=True)
     _model_name = Unicode('MeshModel').tag(sync=True)
     _view_module = Unicode('odysis').tag(sync=True)
     _model_module = Unicode('odysis').tag(sync=True)
@@ -204,6 +203,14 @@ class Mesh(Block):
 
 
 @register
+class DataBlock(Block):
+    _view_name = Unicode('DataBlockView').tag(sync=True)
+    _model_name = Unicode('DataBlockModel').tag(sync=True)
+
+    mesh = Instance(Mesh).tag(sync=True, **widget_serialization)
+
+
+@register
 class PluginBlock(Block):
     _view_name = Unicode('PluginBlockView').tag(sync=True)
     _model_name = Unicode('PluginBlockModel').tag(sync=True)
@@ -225,9 +232,9 @@ class PluginBlock(Block):
 
     def _get_data(self, parent):
         block = parent
-        while not isinstance(block, Mesh):
+        while not isinstance(block, DataBlock):
             block = block._parent_block
-        return block.data
+        return block.mesh.data
 
     @observe('_parent_block')
     def _update_input_data(self, change):
@@ -542,7 +549,7 @@ class Clip(PluginBlock):
 
     def _validate_parent(self, parent):
         block = parent
-        while not isinstance(block, Mesh):
+        while not isinstance(block, DataBlock):
             if isinstance(block, Warp):
                 raise RuntimeError('Cannot apply a Clip after a Warp effect')
             block = block._parent_block
@@ -593,11 +600,11 @@ class Slice(PluginBlock):
 
     def _validate_parent(self, parent):
         block = parent
-        while not isinstance(block, Mesh):
+        while not isinstance(block, DataBlock):
             if isinstance(block, Warp):
                 raise RuntimeError('Cannot apply a Slice after a Warp effect')
             block = block._parent_block
-        if len(block.tetras) == 0:
+        if len(block.mesh.tetras) == 0:
             raise RuntimeError('Cannot apply a Slice to non-volumetric mesh')
 
 
@@ -669,7 +676,7 @@ class VectorField(PluginBlock):
 
     def _validate_parent(self, parent):
         block = parent
-        while not isinstance(block, Mesh):
+        while not isinstance(block, DataBlock):
             if isinstance(block, VectorField) or isinstance(block, PointCloud):
                 raise RuntimeError('Cannot apply a VectorField after a VectorField effect or a PointCloud effect')
             block = block._parent_block
@@ -734,7 +741,7 @@ class PointCloud(PluginBlock):
 
     def _validate_parent(self, parent):
         block = parent
-        while not isinstance(block, Mesh):
+        while not isinstance(block, DataBlock):
             if isinstance(block, VectorField) or isinstance(block, PointCloud):
                 raise RuntimeError('Cannot apply a PointCloud after a VectorField effect or a PointCloud effect')
             block = block._parent_block
@@ -844,9 +851,9 @@ class IsoSurface(PluginBlock):
 
     def _validate_parent(self, parent):
         block = parent
-        while not isinstance(block, Mesh):
+        while not isinstance(block, DataBlock):
             block = block._parent_block
-        if len(block.tetras) == 0:
+        if len(block.mesh.tetras) == 0:
             raise RuntimeError('Cannot apply an IsoSurface to non-volumetric mesh')
 
 
@@ -860,6 +867,6 @@ class Scene(DOMWidget):
     _view_module_version = Unicode(odysis_version).tag(sync=True)
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
-    mesh = Instance(Mesh).tag(sync=True, **widget_serialization)
+    datablocks = List(Instance(DataBlock)).tag(sync=True, **widget_serialization)
 
     background_color = Color('#fff').tag(sync=True)

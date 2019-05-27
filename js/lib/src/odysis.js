@@ -24,16 +24,22 @@ let SceneModel = widgets.DOMWidgetModel.extend({
         _view_module : 'odysis',
         _model_module_version : odysis_version,
         _view_module_version : odysis_version,
-        mesh: undefined,
+        datablocks: [],
         background_color: '#fff'
     })
 }, {
     serializers: _.extend({
-        mesh: { deserialize: widgets.unpack_models }
-    }, widgets.WidgetModel.serializers)
+        datablocks: { deserialize: widgets.unpack_models }
+    }, widgets.DOMWidgetModel.serializers)
 });
 
 let SceneView = widgets.DOMWidgetView.extend({
+    initialize: function (parameters) {
+        SceneView.__super__.initialize.apply(this, arguments);
+
+        this.datablock_views = new widgets.ViewList(this.add_block, this.remove_block, this);
+    },
+
     render: function() {
         this.displayed.then(() => {
             this.el.classList.add('odysis-scene');
@@ -41,18 +47,26 @@ let SceneView = widgets.DOMWidgetView.extend({
 
             this.view.renderer.setClearColor(this.model.get('background_color'));
 
-            this.create_child_view(this.model.get('mesh'), {
-                scene_view: this,
-                parent_view: this
-            }).then(() => {
-                this.model_events();
-            });
+            this.datablock_views.update(this.model.get('datablocks'));
         });
+    },
+
+    add_block: function (block_model) {
+        return this.create_child_view(block_model, {
+            scene_view: this
+        });
+    },
+
+    remove_block: function (block_view) {
+        block_view.remove();
     },
 
     model_events: function() {
         this.model.on('change:background_color', () => {
             this.view.renderer.setClearColor(this.model.get('background_color'));
+        });
+        this.model.on('change:datablocks', () => {
+            this.datablock_views.update(this.model.get('datablocks'));
         });
     },
 
@@ -158,10 +172,9 @@ let BlockView = widgets.WidgetView.extend({
     }
 });
 
-let MeshModel = BlockModel.extend({
-    defaults: _.extend({}, BlockModel.prototype.defaults, {
+let MeshModel = widgets.WidgetModel.extend({
+    defaults: _.extend({}, widgets.WidgetModel.prototype.defaults, {
         _model_name : 'MeshModel',
-        _view_name : 'MeshView',
         _model_module : 'odysis',
         _view_module : 'odysis',
         _model_module_version : odysis_version,
@@ -171,50 +184,10 @@ let MeshModel = BlockModel.extend({
         tetras: [],
         data: [],
         bounding_box: []
-    })
-}, {
-    serializers: _.extend({
-        vertices: serialization.float32array,
-        faces: serialization.uint32array,
-        tetras: serialization.uint32array,
-        data: { deserialize: widgets.unpack_models }
-    }, BlockModel.serializers)
-});
-
-let MeshView = BlockView.extend({
-    create_block: function () {
-        return this.scene_view.view.addDataBlock(
-            this.model.get('vertices'),
-            this.model.get('faces'),
-            this.get_data(),
-            this.model.get('tetras')
-        ).then(((block) => {
-            this.block = block;
-
-            // Compute scale
-            let bb = this.model.get('bounding_box');
-            let dx = bb[1] - bb[0];
-            let dy = bb[3] - bb[2];
-            let dz = bb[5] - bb[4];
-            let scale = 3 / (dx + dy + dz);
-            block.scale = [scale, scale, scale];
-        }));
-    },
-
-    model_events: function () {
-        MeshView.__super__.model_events.apply(this, arguments);
-        this.model.on('change:vertices', () => {
-            this.block.updateVertices(this.model.get('vertices'));
-        });
-        this.model.on('change:data', () => {
-            this.block.updateData(this.get_data());
-        });
-        // TODO Update tetras, update faces?
-        // TODO Try to update vertices and data at the same time?
-    },
+    }),
 
     get_data: function() {
-        let mesh_data = this.model.get('data');
+        let mesh_data = this.get('data');
         let data = {};
         mesh_data.forEach((data_model) => {
             let data_name = data_model.get('name');
@@ -230,6 +203,62 @@ let MeshView = BlockView.extend({
         });
 
         return data;
+    }
+}, {
+    serializers: _.extend({
+        vertices: serialization.float32array,
+        faces: serialization.uint32array,
+        tetras: serialization.uint32array,
+        data: { deserialize: widgets.unpack_models }
+    }, widgets.WidgetModel.serializers)
+});
+
+let DataBlockModel = BlockModel.extend({
+    defaults: _.extend({}, BlockModel.prototype.defaults, {
+        _model_name : 'DataBlockModel',
+        _view_name : 'DataBlockView',
+        _model_module : 'odysis',
+        _view_module : 'odysis',
+        _model_module_version : odysis_version,
+        _view_module_version : odysis_version,
+        mesh: null
+    })
+}, {
+    serializers: _.extend({
+        mesh: { deserialize: widgets.unpack_models }
+    }, BlockModel.serializers)
+});
+
+let DataBlockView = BlockView.extend({
+    create_block: function () {
+        return this.scene_view.view.addDataBlock(
+            this.model.get('mesh').get('vertices'),
+            this.model.get('mesh').get('faces'),
+            this.model.get('mesh').get_data(),
+            this.model.get('mesh').get('tetras')
+        ).then(((block) => {
+            this.block = block;
+
+            // Compute scale
+            let bb = this.model.get('mesh').get('bounding_box');
+            let dx = bb[1] - bb[0];
+            let dy = bb[3] - bb[2];
+            let dz = bb[5] - bb[4];
+            let scale = 3 / (dx + dy + dz);
+            block.scale = [scale, scale, scale];
+        }));
+    },
+
+    model_events: function () {
+        DataBlockView.__super__.model_events.apply(this, arguments);
+        this.model.get('mesh').on('change:vertices', () => {
+            this.block.updateVertices(this.model.get('mesh').get('vertices'));
+        });
+        this.model.get('mesh').on('change:data', () => {
+            this.block.updateData(this.model.get('mesh').get_data());
+        });
+        // TODO Update tetras, update faces?
+        // TODO Try to update vertices and data at the same time?
     }
 });
 
@@ -624,9 +653,10 @@ module.exports = {
     DataModel: DataModel,
     ComponentModel: ComponentModel,
     MeshModel: MeshModel,
-    MeshView: MeshView,
     BlockModel: BlockModel,
     BlockView: BlockView,
+    DataBlockModel: DataBlockModel,
+    DataBlockView: DataBlockView,
     PluginBlockModel: PluginBlockModel,
     PluginBlockView: PluginBlockView,
     ColorMappingModel: ColorMappingModel,
