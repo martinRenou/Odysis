@@ -1,5 +1,7 @@
 from array import array
 
+from IPython.display import display
+
 from traitlets import (
     Unicode, List, Instance, Float,
     Int, Bool, Union, Enum, observe
@@ -229,6 +231,12 @@ class PluginBlock(Block):
         super(PluginBlock, self).__init__(*args, **kwargs)
         self.input_data_wid = None
         self.input_components_wid = None
+
+    def _ipython_display_(self, *args, **kwargs):
+        display(self.interact())
+
+    def interact(self):
+        pass
 
     def _get_data(self, parent):
         block = parent
