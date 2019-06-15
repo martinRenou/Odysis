@@ -180,8 +180,8 @@ let MeshModel = widgets.WidgetModel.extend({
         _model_module_version : odysis_version,
         _view_module_version : odysis_version,
         vertices: [],
-        faces: [],
-        tetras: [],
+        triangles: [],
+        tetrahedrons: [],
         data: [],
         bounding_box: []
     }),
@@ -207,8 +207,8 @@ let MeshModel = widgets.WidgetModel.extend({
 }, {
     serializers: _.extend({
         vertices: serialization.float32array,
-        faces: serialization.uint32array,
-        tetras: serialization.uint32array,
+        triangles: serialization.uint32array,
+        tetrahedrons: serialization.uint32array,
         data: { deserialize: widgets.unpack_models }
     }, widgets.WidgetModel.serializers)
 });
@@ -233,9 +233,9 @@ let DataBlockView = BlockView.extend({
     create_block: function () {
         return this.scene_view.view.addDataBlock(
             this.model.get('mesh').get('vertices'),
-            this.model.get('mesh').get('faces'),
+            this.model.get('mesh').get('triangles'),
             this.model.get('mesh').get_data(),
-            this.model.get('mesh').get('tetras')
+            this.model.get('mesh').get('tetrahedrons')
         ).then(((block) => {
             this.block = block;
 
@@ -257,7 +257,7 @@ let DataBlockView = BlockView.extend({
         this.model.get('mesh').on('change:data', () => {
             this.block.updateData(this.model.get('mesh').get_data());
         });
-        // TODO Update tetras, update faces?
+        // TODO Update tetrahedrons, update triangles?
         // TODO Try to update vertices and data at the same time?
     }
 });

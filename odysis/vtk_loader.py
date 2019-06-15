@@ -41,7 +41,7 @@ def get_ugrid_vertices(grid):
     return out
 
 
-def get_ugrid_tetras(grid):
+def get_ugrid_tetrahedrons(grid):
     dtype = UINT32
 
     # vtkCellIterator
@@ -66,7 +66,7 @@ def get_ugrid_tetras(grid):
     return out
 
 
-def get_ugrid_faces(grid):
+def get_ugrid_triangles(grid):
     dtype = UINT32
 
     filtered = geometry_filter(grid)

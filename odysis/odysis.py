@@ -18,7 +18,7 @@ from ipywidgets import (
 from .serialization import array_serialization
 from .vtk_loader import (
     load_vtk, FLOAT32, UINT32,
-    get_ugrid_vertices, get_ugrid_faces, get_ugrid_tetras, get_ugrid_data
+    get_ugrid_vertices, get_ugrid_triangles, get_ugrid_tetrahedrons, get_ugrid_data
 )
 from .slider import FloatSlider, FloatRangeSlider
 
@@ -164,10 +164,10 @@ class Mesh(Widget):
     _view_module_version = Unicode(odysis_version).tag(sync=True)
     _model_module_version = Unicode(odysis_version).tag(sync=True)
 
-    # TODO: validate vertices/faces/tetras as being 1-D array, and validate dtype
+    # TODO: validate vertices/triangles/tetrahedrons as being 1-D array, and validate dtype
     vertices = Array(default_value=array(FLOAT32)).tag(sync=True, **array_serialization)
-    faces = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
-    tetras = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
+    triangles = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
+    tetrahedrons = Array(default_value=array(UINT32)).tag(sync=True, **array_serialization)
     data = List(Instance(Data), default_value=[]).tag(sync=True, **widget_serialization)
     bounding_box = List().tag(sync=True)
 
@@ -180,24 +180,24 @@ class Mesh(Widget):
 
         return Mesh(
             vertices=get_ugrid_vertices(grid),
-            faces=get_ugrid_faces(grid),
-            tetras=get_ugrid_tetras(grid),
+            triangles=get_ugrid_triangles(grid),
+            tetrahedrons=get_ugrid_tetrahedrons(grid),
             data=_grid_data_to_data_widget(get_ugrid_data(grid)),
             bounding_box=bounding_box
         )
 
     def reload(self, path,
-               reload_vertices=False, reload_faces=False,
-               reload_data=True, reload_tetras=False):
+               reload_vertices=False, reload_triangles=False,
+               reload_data=True, reload_tetrahedrons=False):
         grid = load_vtk(path)
 
         with self.hold_sync():
             if reload_vertices:
                 self.vertices = get_ugrid_vertices(grid)
-            if reload_faces:
-                self.faces = get_ugrid_faces(grid)
-            if reload_tetras:
-                self.tetras = get_ugrid_tetras(grid)
+            if reload_triangles:
+                self.triangles = get_ugrid_triangles(grid)
+            if reload_tetrahedrons:
+                self.tetrahedrons = get_ugrid_tetrahedrons(grid)
             if reload_data:
                 self.data = _grid_data_to_data_widget(get_ugrid_data(grid))
 
@@ -604,7 +604,7 @@ class Slice(PluginBlock):
             if isinstance(block, Warp):
                 raise RuntimeError('Cannot apply a Slice after a Warp effect')
             block = block._parent_block
-        if len(block.mesh.tetras) == 0:
+        if len(block.mesh.tetrahedrons) == 0:
             raise RuntimeError('Cannot apply a Slice to non-volumetric mesh')
 
 
@@ -853,7 +853,7 @@ class IsoSurface(PluginBlock):
         block = parent
         while not isinstance(block, DataBlock):
             block = block._parent_block
-        if len(block.mesh.tetras) == 0:
+        if len(block.mesh.tetrahedrons) == 0:
             raise RuntimeError('Cannot apply an IsoSurface to non-volumetric mesh')
 
 
