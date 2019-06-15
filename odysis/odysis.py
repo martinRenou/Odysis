@@ -626,12 +626,16 @@ class VectorField(PluginBlock):
             self._init_vectorfield_widgets()
             self.initialized_widgets = True
 
+        widgets = (
+            self.length_factor_wid, self.width_wid,
+            self.percentage_vectors_wid,
+            self.distribution_wid
+        )
+        if self.mode_wid is not None:
+            widgets = widget + (self.mode_wid, )
+
         return HBox(
-            self._interact() + (VBox((
-                self.length_factor_wid, self.width_wid,
-                self.percentage_vectors_wid,
-                self.distribution_wid, self.mode_wid
-            )), )
+            self._interact() + (VBox(widgets), )
         )
 
     def __init__(self, *args, **kwargs):
@@ -662,17 +666,24 @@ class VectorField(PluginBlock):
             options=['ordered', 'random'],
             value=self.distribution
         )
-        self.mode_wid = ToggleButtons(
-            description='Mode',
-            options=['volume', 'surface'],
-            value=self.mode
-        )
+
+        # Check if it's a volumetric mesh
+        block = self
+        while not isinstance(block, DataBlock):
+            block = block._parent_block
+        if len(block.mesh.tetrahedrons) != 0:
+            self.mode_wid = ToggleButtons(
+                description='Mode',
+                options=['volume', 'surface'],
+                value=self.mode
+            )
+
+            link((self, 'mode'), (self.mode_wid, 'value'))
 
         link((self, 'length_factor'), (self.length_factor_wid, 'value'))
         link((self, 'width'), (self.width_wid, 'value'))
         link((self, 'percentage_vectors'), (self.percentage_vectors_wid, 'value'))
         link((self, 'distribution'), (self.distribution_wid, 'value'))
-        link((self, 'mode'), (self.mode_wid, 'value'))
 
     def _validate_parent(self, parent):
         block = parent
@@ -697,11 +708,15 @@ class PointCloud(PluginBlock):
             self._init_pointcloud_widgets()
             self.initialized_widgets = True
 
+        widgets = (
+            self.points_size_wid, self.percentage_points_wid,
+            self.distribution_wid
+        )
+        if self.mode_wid is not None:
+            widgets = widgets + (self.mode_wid, )
+
         return HBox(
-            self._interact() + (VBox((
-                self.points_size_wid, self.percentage_points_wid,
-                self.distribution_wid, self.mode_wid
-            )), )
+            self._interact() + (VBox(widgets), )
         )
 
     def __init__(self, *args, **kwargs):
@@ -728,16 +743,23 @@ class PointCloud(PluginBlock):
             options=['ordered', 'random'],
             value=self.distribution
         )
-        self.mode_wid = ToggleButtons(
-            description='Mode',
-            options=['volume', 'surface'],
-            value=self.mode
-        )
+
+        # Check if it's a volumetric mesh
+        block = self
+        while not isinstance(block, DataBlock):
+            block = block._parent_block
+        if len(block.mesh.tetrahedrons) != 0:
+            self.mode_wid = ToggleButtons(
+                description='Mode',
+                options=['volume', 'surface'],
+                value=self.mode
+            )
+
+            link((self, 'mode'), (self.mode_wid, 'value'))
 
         link((self, 'points_size'), (self.points_size_wid, 'value'))
         link((self, 'percentage_points'), (self.percentage_points_wid, 'value'))
         link((self, 'distribution'), (self.distribution_wid, 'value'))
-        link((self, 'mode'), (self.mode_wid, 'value'))
 
     def _validate_parent(self, parent):
         block = parent
