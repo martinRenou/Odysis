@@ -457,44 +457,6 @@ class PlugInBlock extends Block {
   }
 
   /**
-   * Replace an old alpha node with a new one and update shaders
-   * @param {THREE.GLNode} oldNode - The node that you want to replace
-   * @param {THREE.GLNode} newNode - The node of substitution
-   */
-  replaceAlphaNode(oldNode, newNode){
-    this._meshes.forEach((mesh) => {
-      mesh.material._alphaNodes.forEach((alphaNode) => {
-        if (alphaNode.get('node') === oldNode) {
-          alphaNode.set('node', newNode);
-        }
-      });
-    });
-    this.buildMaterials();
-
-    // Replace alpha node for children
-    this.childrenBlocks.forEach((child) => {
-      if (child._processed) {
-        child.replaceAlphaNode(oldNode, newNode);
-      }
-    });
-  }
-
-  /**
-   * Remove alpha node of material
-   * @param {THREE.GLNode} alphaNode - The node that you want to remove
-   */
-  removeAlphaNode (alphaNode) {
-    this._meshes.forEach((mesh) => {
-      for (let i = 0, len = mesh.material._alphaNodes.length; i<len; i++) {
-        if (mesh.material._alphaNodes[i].get('node') == alphaNode) {
-          mesh.material._alphaNodes.splice(i, 1);
-          break;
-        }
-      }
-    });
-  }
-
-  /**
    * Add color node for material
    * @param {string} operator - Operator that will be used to compute
    * color values together. Allowed values are 'ADD', 'SUB', 'MUL'
@@ -514,29 +476,6 @@ class PlugInBlock extends Block {
   }
 
   /**
-   * Replace an old color node with a new one
-   * @param {THREE.GLNode} oldNode - The node that you want to replace
-   * @param {THREE.GLNode} newNode - The node of substitution
-   */
-  replaceColorNode(oldNode, newNode){
-    this._meshes.forEach((mesh) => {
-      mesh.material._colorNodes.forEach((colorNode) => {
-        if (colorNode.get('node') === oldNode) {
-          colorNode.set('node', newNode);
-        }
-      });
-    });
-    this.buildMaterials();
-
-    // Replace color node for children
-    this.childrenBlocks.forEach((child) => {
-      if (child._processed) {
-        child.replaceColorNode(oldNode, newNode);
-      }
-    });
-  }
-
-  /**
    * Add transform node for material
    * @param {string} operator - Operator that will be used to compute
    * transform values together. Allowed values are 'ADD', 'SUB', 'MUL'
@@ -553,45 +492,6 @@ class PlugInBlock extends Block {
       mesh.material._transformNodes.push(map);
     });
     this.buildMaterials();
-  }
-
-  /**
-   * Replace an old transform node with a new one
-   * @param {THREE.GLNode} oldNode - The node that you want to replace
-   * @param {THREE.GLNode} newNode - The node of substitution
-   */
-  replaceTransformNode(oldNode, newNode){
-    this._meshes.forEach((mesh) => {
-      mesh.material._transformNodes.forEach((transformNode) => {
-        if (transformNode.get('node') === oldNode) {
-          transformNode.set('node', newNode);
-        }
-      });
-    });
-    this.buildMaterials();
-
-    // Replace transform node for children
-    this.childrenBlocks.forEach((child) => {
-      if (child._processed) {
-        child.replaceTransformNode(oldNode, newNode);
-      }
-    });
-  }
-
-  /**
-   * Remove transform node of material
-   * @param {THREE.GLNode} transformNode - The node that you want to
-   * remove
-   */
-  removeTransformNode (transformNode) {
-    this._meshes.forEach((mesh) => {
-      for (let i = 0, len = mesh.material._transformNodes.length; i<len; i++) {
-        if (mesh.material._transformNodes[i].get('node') == transformNode) {
-          mesh.material._transformNodes.splice(i, 1);
-          break;
-        }
-      }
-    });
   }
 
   /**

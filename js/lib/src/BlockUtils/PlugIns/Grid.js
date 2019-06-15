@@ -20,13 +20,12 @@ class Grid extends PlugInBlock {
   constructor (parentBlock, axis='x', color=0x000000, step=500, width=20) {
     let setters = {
       'axis': (value) => {
-        let oldNode = this._gridCall;
-        this._setGridNode();
-        this.replaceColorNode(oldNode, this._gridCall);
+        this._gridCall.value = this._getFunctionNode();
+        this.updateMaterial();
       },
       'color': (value) => {
         this._gridCall.inputs.gridcolor.value = new THREE.Color(value);
-        this.buildMaterials();
+        this.updateMaterial();
       },
       'step': (value) => {
         this._gridCall.inputs.gridstep.number = value;
@@ -45,26 +44,24 @@ class Grid extends PlugInBlock {
   }
 
   _process () {
-    this._setGridNode();
-
-    this.addColorNode('REPLACE', this._gridCall);
-  }
-
-  _setGridNode () {
-    this._gridFunction = new THREE.FunctionNode(
-      `vec3 gridFunc${this._plugInID}(vec3 oldcolor, vec3 gridcolor, vec3 position, float gridstep, float width){
-         float factor = step(0.0, mod(position.${this._axis} + width * 0.5, gridstep) - width);
-         return factor * oldcolor + (1.0 - factor) * gridcolor;
-       }`
-    );
-
-    this._gridCall = new THREE.FunctionCallNode(this._gridFunction);
+    this._gridCall = new THREE.FunctionCallNode(this._getFunctionNode());
 
     this._gridCall.inputs.oldcolor = this.getCurrentColorNode();
     this._gridCall.inputs.gridcolor = new THREE.ColorNode(this._color);
     this._gridCall.inputs.position = this.getCurrentPositionNode();
     this._gridCall.inputs.gridstep = new THREE.FloatNode(this._step);
     this._gridCall.inputs.width = new THREE.FloatNode(this._width);
+
+    this.addColorNode('REPLACE', this._gridCall);
+  }
+
+  _getFunctionNode () {
+    return new THREE.FunctionNode(
+      `vec3 gridFunc${this._plugInID}(vec3 oldcolor, vec3 gridcolor, vec3 position, float gridstep, float width){
+         float factor = step(0.0, mod(position.${this._axis} + width * 0.5, gridstep) - width);
+         return factor * oldcolor + (1.0 - factor) * gridcolor;
+       }`
+    );
   }
 }
 
