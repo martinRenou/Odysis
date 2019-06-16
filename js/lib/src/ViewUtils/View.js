@@ -228,7 +228,6 @@ class View {
     this.scene = null;
     this.camera = null;
     this.controls = null;
-    this.container.removeChild(this.renderer.domElement);
 
     return true;
   }
