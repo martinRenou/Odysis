@@ -21,6 +21,7 @@ def filter_grid(grid, filter_function):
 
 
 def geometry_filter(grid):
+    # TODO Use vtkDataSetSurfaceFilter? (Supposed to be faster)
     return filter_grid(grid, vtk.vtkGeometryFilter)
 
 
