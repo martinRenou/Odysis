@@ -375,10 +375,10 @@ class Block {
 
         Object.keys(data).forEach((componentName) => {
           if (componentName !== 'Magnitude') {
-            powNode = new Nodes.Math2Node(
+            powNode = new Nodes.MathNode(
               data[componentName].node,
               powt,
-              Nodes.Math2Node.POW
+              Nodes.MathNode.POW
             );
             sumNode = new Nodes.OperatorNode(
               powNode,
@@ -388,9 +388,9 @@ class Block {
           }
         });
 
-        data.Magnitude.node = new Nodes.Math1Node(
+        data.Magnitude.node = new Nodes.MathNode(
           sumNode,
-          Nodes.Math1Node.SQRT
+          Nodes.MathNode.SQRT
         );
       }
     });

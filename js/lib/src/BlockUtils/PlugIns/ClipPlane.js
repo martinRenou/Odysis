@@ -92,16 +92,16 @@ class ClipPlane extends PlugInBlock {
 
     let currentPosition = this.getCurrentPositionNode();
 
-    let compute_dot = new Nodes.Math2Node(
+    let compute_dot = new Nodes.MathNode(
       currentPosition,
       this._planeNormalNode,
-      Nodes.Math2Node.DOT
+      Nodes.MathNode.DOT
     );
 
-    let clipPlaneAlpha = new Nodes.Math2Node(
+    let clipPlaneAlpha = new Nodes.MathNode(
       compute_dot,
       this._planePositionNode,
-      Nodes.Math2Node.STEP
+      Nodes.MathNode.STEP
     );
 
     this.addAlphaNode('MUL', clipPlaneAlpha);

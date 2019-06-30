@@ -419,7 +419,7 @@ class PlugInBlock extends Block {
    * Add a point size node to set size of gl_points
    * @param {Nodes.GLNode} floatNode - A Nodes.FloatNode (or
    * equivalent, it must be of type float in shaders. So a
-   * Nodes.Math1Node is allowed) containing the value of point size.
+   * Nodes.MathNode is allowed) containing the value of point size.
    */
   addPointSizeNode (floatNode) {
     let setPointSizeFunc = new Nodes.FunctionNode([
@@ -443,7 +443,7 @@ class PlugInBlock extends Block {
    * 'DIV'.
    * @param {THREE.GLNode} alphaNode - A THREE.FloatNode (or
    * equivalent, it must be of type float in shaders. So a
-   * THREE.Math1Node is allowed) containing the value of alpha.
+   * THREE.MathNode is allowed) containing the value of alpha.
    */
   addAlphaNode (operator, alphaNode) {
     let map = new Map();
@@ -661,7 +661,10 @@ class PlugInBlock extends Block {
   getCurrentMaterial () {
     // Clone basic material parameters
     let inputMaterial = this.parentBlock._meshes[0].material;
-    let currentMaterial = inputMaterial.clone();
+
+    // Workaround for https://github.com/mrdoob/three.js/pull/16955
+    let currentMaterial = new inputMaterial.constructor();
+    currentMaterial.copy(inputMaterial);
 
     // Clone transfom/alpha/color node lists
     let _transformNodes = inputMaterial._transformNodes.slice(0);

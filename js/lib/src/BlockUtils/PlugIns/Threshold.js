@@ -93,17 +93,17 @@ class Threshold extends PlugInBlock {
 
     // GLSL's STEP function is more optimized than an if statement
     // It will returns 0 if inputData > upperBound, 1 otherwise
-    this.isUnderUpperThreshold = new Nodes.Math2Node(
+    this.isUnderUpperThreshold = new Nodes.MathNode(
       this._inputDataNode,
       this._upperBoundNode,
-      Nodes.Math2Node.STEP
+      Nodes.MathNode.STEP
     );
 
     // It will returns 0 if inputData < lowerBound, 1 otherwise
-    this.isOverLowerThreshold = new Nodes.Math2Node(
+    this.isOverLowerThreshold = new Nodes.MathNode(
       this._lowerBoundNode,
       this._inputDataNode,
-      Nodes.Math2Node.STEP
+      Nodes.MathNode.STEP
     );
 
     // Create alpha node
