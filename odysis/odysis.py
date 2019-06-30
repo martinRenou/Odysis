@@ -640,7 +640,7 @@ class VectorField(PluginBlock):
             self.distribution_wid
         )
         if self.mode_wid is not None:
-            widgets = widget + (self.mode_wid, )
+            widgets = widgets + (self.mode_wid, )
 
         return HBox(
             self._interact() + (VBox(widgets), )
