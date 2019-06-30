@@ -460,9 +460,11 @@ class Block {
         );
       });
 
-      // To display surfaces like 2D planes or iso-surfaces whatever
+      // For displaying surfaces like 2D planes or iso-surfaces whatever
       // the point of view
       mesh.material.side = THREE.DoubleSide;
+
+      mesh.material.alphaTest = 0.1;
 
       // Set wireframe status and shading
       if (mesh.type !== 'LineSegments' && mesh.type !== 'Points') {
@@ -470,12 +472,10 @@ class Block {
         mesh.material.flatShading = !this._wireframe;
       } else {
         mesh.material.wireframe = false;
-        // Why ?
-        // mesh.material.shading = THREE.SmoothShading;
       }
 
       // Get isoColor node
-      mesh.material.transform = position;
+      mesh.material.position = position;
       mesh.material.alpha = alpha;
       mesh.material.color = color;
       mesh.material.build();

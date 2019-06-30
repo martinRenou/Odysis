@@ -587,8 +587,8 @@ class PlugInBlock extends Block {
 
     let setCustomVarCall = new Nodes.FunctionCallNode(setCustomVar);
 
-    if (this._meshes[0].material.transform) {
-      setCustomVarCall.inputs.pos = this._meshes[0].material.transform;
+    if (this._meshes[0].material.position) {
+      setCustomVarCall.inputs.pos = this._meshes[0].material.position;
     } else {
       setCustomVarCall.inputs.pos = new Nodes.PositionNode();
     }

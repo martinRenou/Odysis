@@ -62,9 +62,6 @@ class DataBlock extends Block {
       this._material._colorVaryingNodes = [];
       this._material._alphaVaryingNodes = [];
 
-      // Disable backface culling (to fix display issues with planes)
-      this._material.side = THREE.DoubleSide;
-
       // Initialize mesh position/rotation/scale
       this._meshes.push(
         new THREE.Mesh(this._bufferGeometry, this._material)
