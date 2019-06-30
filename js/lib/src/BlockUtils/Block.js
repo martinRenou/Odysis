@@ -2,7 +2,7 @@
  * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
-let THREE = require('../three');
+let {THREE, Nodes} = require('../three');
 
 
 let getOperatornode = function(a, b, operator) {
@@ -14,23 +14,23 @@ let getOperatornode = function(a, b, operator) {
 
   switch (operator) {
     case 'SUB':
-      operation = THREE.OperatorNode.SUB;
+      operation = Nodes.OperatorNode.SUB;
       break;
     case 'ADD':
-      operation = THREE.OperatorNode.ADD;
+      operation = Nodes.OperatorNode.ADD;
       break;
     case 'DIV':
-      operation = THREE.OperatorNode.DIV;
+      operation = Nodes.OperatorNode.DIV;
       break;
     case 'MUL':
-      operation = THREE.OperatorNode.MUL;
+      operation = Nodes.OperatorNode.MUL;
       break;
     default:
       throw new Error(`"${operator}" is not a known shader operator`);
       break;
   }
 
-  return new THREE.OperatorNode(a, b, operation);
+  return new Nodes.OperatorNode(a, b, operation);
 }
 
 /**
@@ -356,7 +356,7 @@ class Block {
 
         component.shaderName = shaderName;
 
-        component.node = new THREE.AttributeNode(
+        component.node = new Nodes.AttributeNode(
           shaderName,
           'float'
         );
@@ -369,28 +369,28 @@ class Block {
 
         data.Magnitude.shaderName = 'd' + d + 'Magnitude';
 
-        let powt = new THREE.FloatNode(2);
-        let sumNode = new THREE.FloatNode(0);
+        let powt = new Nodes.FloatNode(2);
+        let sumNode = new Nodes.FloatNode(0);
         let powNode;
 
         Object.keys(data).forEach((componentName) => {
           if (componentName !== 'Magnitude') {
-            powNode = new THREE.Math2Node(
+            powNode = new Nodes.Math2Node(
               data[componentName].node,
               powt,
-              THREE.Math2Node.POW
+              Nodes.Math2Node.POW
             );
-            sumNode = new THREE.OperatorNode(
+            sumNode = new Nodes.OperatorNode(
               powNode,
               sumNode,
-              THREE.OperatorNode.ADD
+              Nodes.OperatorNode.ADD
             );
           }
         });
 
-        data.Magnitude.node = new THREE.Math1Node(
+        data.Magnitude.node = new Nodes.Math1Node(
           sumNode,
-          THREE.Math1Node.SQRT
+          Nodes.Math1Node.SQRT
         );
       }
     });
@@ -404,16 +404,16 @@ class Block {
     this._meshes.forEach((mesh) => {
       let material = mesh.material;
 
-      let position = new THREE.PositionNode();
-      let alpha = new THREE.FloatNode(1.0);
-      let color = new THREE.ColorNode(0xEEEEEE);
+      let position = new Nodes.PositionNode();
+      let alpha = new Nodes.FloatNode(1.0);
+      let color = new Nodes.ColorNode(0xEEEEEE);
 
       // Compute transformations
       material._positionVaryingNodes.forEach((varNode) => {
-        position = new THREE.OperatorNode(
+        position = new Nodes.OperatorNode(
           position,
           varNode,
-          THREE.OperatorNode.ADD
+          Nodes.OperatorNode.ADD
         );
       });
 
@@ -428,10 +428,10 @@ class Block {
 
       // Compute alpha
       material._alphaVaryingNodes.forEach((alphaVarNode) => {
-        alpha = new THREE.OperatorNode(
+        alpha = new Nodes.OperatorNode(
           alpha,
           alphaVarNode,
-          THREE.OperatorNode.ADD
+          Nodes.OperatorNode.ADD
         );
       });
 
@@ -445,10 +445,10 @@ class Block {
 
       // Compute color
       material._colorVaryingNodes.forEach((colorVarNode) => {
-        color = new THREE.OperatorNode(
+        color = new Nodes.OperatorNode(
           color,
           colorVarNode,
-          THREE.OperatorNode.ADD
+          Nodes.OperatorNode.ADD
         );
       });
 

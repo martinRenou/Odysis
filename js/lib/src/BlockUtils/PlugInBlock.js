@@ -2,7 +2,7 @@
  * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
-let THREE = require('../three');
+let {THREE, Nodes} = require('../three');
 let Block = require('./Block');
 
 /**
@@ -161,7 +161,7 @@ class PlugInBlock extends Block {
       let _alphaVaryingNodes =
         previousMesh.material._alphaVaryingNodes.slice(0);
 
-      let material = new THREE.StandardNodeMaterial();
+      let material = new Nodes.StandardNodeMaterial();
 
       material._transformNodes = _transformNodes;
       material._colorNodes = _colorNodes;
@@ -297,23 +297,23 @@ class PlugInBlock extends Block {
   _setInput(dataName, componentNames=[undefined]) {
     // Set inputDataNode
     let nodes = componentNames.map((componentName) => {
-      // If user wants a number as input, return a THREE.FloatNode
+      // If user wants a number as input, return a Nodes.FloatNode
       if (typeof componentName === 'number') {
         let number = componentName;
-        return new THREE.FloatNode(number);
+        return new Nodes.FloatNode(number);
       }
 
-      // Else return a the THREE.AttributeNode
+      // Else return a the Nodes.AttributeNode
       return this.parentBlock.getComponentNode(dataName, componentName);
     });
 
     if (nodes.length > 4) { throw 'Maximum vector size is 4'; }
 
     // If input is a vector, create a vector in shaders with a
-    // THREE.JoinNode which will create a vector composed of components
+    // Nodes.JoinNode which will create a vector composed of components
     // passed in arguments
     if (nodes.length > 1) {
-      this._inputDataNode = new THREE.JoinNode(...nodes);
+      this._inputDataNode = new Nodes.JoinNode(...nodes);
     } else { this._inputDataNode = nodes[0]; }
 
     // Set inputComponentArrays
@@ -417,22 +417,22 @@ class PlugInBlock extends Block {
 
   /**
    * Add a point size node to set size of gl_points
-   * @param {THREE.GLNode} floatNode - A THREE.FloatNode (or
+   * @param {Nodes.GLNode} floatNode - A Nodes.FloatNode (or
    * equivalent, it must be of type float in shaders. So a
-   * THREE.Math1Node is allowed) containing the value of point size.
+   * Nodes.Math1Node is allowed) containing the value of point size.
    */
   addPointSizeNode (floatNode) {
-    let setPointSizeFunc = new THREE.FunctionNode([
+    let setPointSizeFunc = new Nodes.FunctionNode([
       'vec3 setPointSizeFunc( float size ){',
       '    gl_PointSize = size;',
       '    return vec3(0., 0., 0.);',
       '}'].join('\n')
     );
     let setPointSizeFuncCall =
-      new THREE.FunctionCallNode(setPointSizeFunc);
+      new Nodes.FunctionCallNode(setPointSizeFunc);
     setPointSizeFuncCall.inputs.size = floatNode;
 
-    // TODO: request on ThreeJS for a THREE.PointSizeNode
+    // TODO: request on ThreeJS for a Nodes.PointSizeNode
     this.addTransformNode('ADD', setPointSizeFuncCall);
   }
 
@@ -568,15 +568,15 @@ class PlugInBlock extends Block {
 
   /**
    * Create a varying of the current position
-   * @return {THREE.VarNode} Varying node representing the current
+   * @return {Nodes.VarNode} Varying node representing the current
    * position of each vertex
    */
   getCurrentPositionNode () {
-    let currentPosition = new THREE.VarNode('vec3');
+    let currentPosition = new Nodes.VarNode('vec3');
 
     // Change this when we'll be able to set void functions
     // or properly set varyings
-    let setCustomVar = new THREE.FunctionNode([
+    let setCustomVar = new Nodes.FunctionNode([
       'float setPosVar' + this._plugInID + '(vec3 pos){',
       '    posVar' + this._plugInID + ' = pos;',
       '    return 0.;',
@@ -585,12 +585,12 @@ class PlugInBlock extends Block {
 
     setCustomVar.keywords['posVar' + this._plugInID] = currentPosition;
 
-    let setCustomVarCall = new THREE.FunctionCallNode(setCustomVar);
+    let setCustomVarCall = new Nodes.FunctionCallNode(setCustomVar);
 
     if (this._meshes[0].material.transform) {
       setCustomVarCall.inputs.pos = this._meshes[0].material.transform;
     } else {
-      setCustomVarCall.inputs.pos = new THREE.PositionNode();
+      setCustomVarCall.inputs.pos = new Nodes.PositionNode();
     }
 
     this.addPositionVaryingSetter(setCustomVarCall);
@@ -619,11 +619,11 @@ class PlugInBlock extends Block {
    * Create a varying of the current alpha canal
    */
   getCurrentAlphaNode () {
-    let currentAlpha = new THREE.VarNode('float');
+    let currentAlpha = new Nodes.VarNode('float');
 
     // Change this when we'll be able to set void functions
     // or properly set varyings
-    let setCustomVar = new THREE.FunctionNode([
+    let setCustomVar = new Nodes.FunctionNode([
       'float setAlphaVar' + this._plugInID + '(float alpha){',
       '    alphaVar' + this._plugInID + ' = alpha;',
       '    return 0.;',
@@ -632,12 +632,12 @@ class PlugInBlock extends Block {
 
     setCustomVar.keywords['alphaVar' + this._plugInID] = currentAlpha;
 
-    let setCustomVarCall = new THREE.FunctionCallNode(setCustomVar);
+    let setCustomVarCall = new Nodes.FunctionCallNode(setCustomVar);
 
     if (this._meshes[0].material.alpha) {
       setCustomVarCall.inputs.alpha = this._meshes[0].material.alpha;
     } else {
-      setCustomVarCall.inputs.alpha = new THREE.FloatNode(1.0);
+      setCustomVarCall.inputs.alpha = new Nodes.FloatNode(1.0);
     }
 
     this.addAlphaVaryingSetter(setCustomVarCall);

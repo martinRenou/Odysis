@@ -4,6 +4,7 @@
 
 let PlugInBlock = require('../PlugInBlock');
 let IsoSurfaceUtils = require('./IsoSurfaceUtils');
+let {THREE, Nodes} = require('../../three');
 
 /**
  * Threshold class
@@ -87,29 +88,29 @@ class Threshold extends PlugInBlock {
     }
 
     // Create lowerbound and upperbound float nodes
-    this._lowerBoundNode = new THREE.FloatNode(this._lowerBound);
-    this._upperBoundNode = new THREE.FloatNode(this._upperBound);
+    this._lowerBoundNode = new Nodes.FloatNode(this._lowerBound);
+    this._upperBoundNode = new Nodes.FloatNode(this._upperBound);
 
     // GLSL's STEP function is more optimized than an if statement
     // It will returns 0 if inputData > upperBound, 1 otherwise
-    this.isUnderUpperThreshold = new THREE.Math2Node(
+    this.isUnderUpperThreshold = new Nodes.Math2Node(
       this._inputDataNode,
       this._upperBoundNode,
-      THREE.Math2Node.STEP
+      Nodes.Math2Node.STEP
     );
 
     // It will returns 0 if inputData < lowerBound, 1 otherwise
-    this.isOverLowerThreshold = new THREE.Math2Node(
+    this.isOverLowerThreshold = new Nodes.Math2Node(
       this._lowerBoundNode,
       this._inputDataNode,
-      THREE.Math2Node.STEP
+      Nodes.Math2Node.STEP
     );
 
     // Create alpha node
-    this.thresholdAlpha = new THREE.OperatorNode(
+    this.thresholdAlpha = new Nodes.OperatorNode(
       this.isUnderUpperThreshold,
       this.isOverLowerThreshold,
-      THREE.OperatorNode.MUL
+      Nodes.OperatorNode.MUL
     );
 
     this._CPUCompute = this.parentBlock.tetraArray !== undefined;

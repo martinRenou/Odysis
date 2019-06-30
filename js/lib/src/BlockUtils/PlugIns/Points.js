@@ -3,6 +3,7 @@
  * **/
 
 let PlugInBlock = require('../PlugInBlock');
+let {THREE, Nodes} = require('../../three');
 
 /**
  * Points class
@@ -132,7 +133,7 @@ class Points extends PlugInBlock {
     this.addMesh(points);
 
     // Set point size
-    this._sizeNode = new THREE.FloatNode(this._pointsSize);
+    this._sizeNode = new Nodes.FloatNode(this._pointsSize);
     super.addPointSizeNode(this._sizeNode);
   }
 

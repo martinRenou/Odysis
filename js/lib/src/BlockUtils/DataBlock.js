@@ -2,7 +2,7 @@
  * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
-let THREE = require('../three');
+let {THREE, Nodes} = require('../three');
 let Block = require('./Block');
 
 /**
@@ -48,7 +48,7 @@ class DataBlock extends Block {
       this.initBufferGeometry();
 
       // Create basic material and build it
-      this._material = new THREE.StandardNodeMaterial();
+      this._material = new Nodes.StandardNodeMaterial();
       this._material.shading = THREE.FlatShading;
       this._material.build();
 
