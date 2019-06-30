@@ -49,7 +49,7 @@ class DataBlock extends Block {
 
       // Create basic material and build it
       this._material = new Nodes.StandardNodeMaterial();
-      this._material.shading = THREE.FlatShading;
+      this._material.FlatShading = true;
       this._material.build();
 
       // Nodes for computing effects

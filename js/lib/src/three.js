@@ -1,5 +1,5 @@
 // ThreeJS
-let THREE = require('three');
+let THREE = require('three/build/three.module.js');
 
 window.THREE = THREE;
 
