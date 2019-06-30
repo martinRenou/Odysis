@@ -100,3 +100,8 @@ def plot():
     global _current_scene
 
     display(_current_scene)
+
+def get_current_scene():
+    global _current_scene
+
+    return _current_scene
