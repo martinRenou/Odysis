@@ -61,7 +61,7 @@ class ClipPlane extends PlugInBlock {
       'planePosition': () => {
         this._updateFillPlaneGeometry();
 
-        this._planePositionNode.number = this._planePosition;
+        this._planePositionNode.value = this._planePosition;
       }
     };
 

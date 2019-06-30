@@ -23,7 +23,7 @@ class Warp extends PlugInBlock {
    */
   constructor (parentBlock, warpFactor = 1) {
     let setters = {
-      'warpFactor': (factor) => { this._warpFactorNode.number = factor;}
+      'warpFactor': (factor) => { this._warpFactorNode.value = factor;}
     };
 
     super(parentBlock, setters);

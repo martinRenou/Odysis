@@ -44,7 +44,7 @@ class Points extends PlugInBlock {
     let setters = {
       'pointsSize': (pointsSize) => {
         this._checkPointsSize(pointsSize);
-        this._sizeNode.number = pointsSize;
+        this._sizeNode.value = pointsSize;
       },
       'distribution': (distribution) => {
         this._checkDistribution(distribution);

@@ -25,13 +25,13 @@ class Threshold extends PlugInBlock {
     let setters = {
       'lowerBound': (lowerBound) => {
         this._checkLowerBound(lowerBound);
-        this._lowerBoundNode.number = lowerBound;
+        this._lowerBoundNode.value = lowerBound;
 
         if (this._CPUCompute) { this._updateGeometryLowerBound(); }
       },
       'upperBound': (upperBound) => {
         this._checkUpperBound(upperBound);
-        this._upperBoundNode.number = upperBound;
+        this._upperBoundNode.value = upperBound;
 
         if (this._CPUCompute) { this._updateGeometryUpperBound(); }
       }

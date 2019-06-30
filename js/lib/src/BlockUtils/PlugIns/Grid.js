@@ -28,10 +28,10 @@ class Grid extends PlugInBlock {
         this.updateMaterial();
       },
       'step': (value) => {
-        this._gridCall.inputs.gridstep.number = value;
+        this._gridCall.inputs.gridstep.value = value;
       },
       'width': (value) => {
-        this._gridCall.inputs.width.number = value;
+        this._gridCall.inputs.width.value = value;
       },
     };
 
