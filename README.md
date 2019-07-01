@@ -3,6 +3,8 @@
 <h2 align="center"> Jupyter interactive widgets library for 3-D mesh analysis
 <h2 align="center"><a href="https://github.com/martinRenou/Odysis_examples">Notebook Examples</a></h1>
 
+[![Odysis](https://img.youtube.com/vi/4YZvbOmR4cU/0.jpg)](https://www.youtube.com/watch?v=4YZvbOmR4cU)
+
 <p align="center"><video src="images/odysis.mp4"></p>
 
 Features
