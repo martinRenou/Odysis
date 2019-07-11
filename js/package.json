@@ -25,15 +25,9 @@
     "watch": "webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "css-loader": "^0.28.7",
-    "webpack": "^3.5.5",
-    "rimraf": "^2.6.1",
-    "style-loader": "^0.18.1"
-  },
   "dependencies": {
-    "@jupyter-widgets/base": "^1.0.0",
-    "@jupyter-widgets/controls": "^1.4.3",
+    "@jupyter-widgets/base": "^2.0.0",
+    "@jupyter-widgets/controls": "^1.5.1",
     "binary-search-tree": "^0.2.6",
     "gl-matrix-mat3": "^2.2.1-npm",
     "gl-matrix-mat4": "^2.2.1-npm",
@@ -42,6 +36,10 @@
     "lodash": "^4.17.4",
     "object.values": "^1.0.4",
     "three": "^0.81.2"
+  },
+  "devDependencies": {
+    "webpack": "^3.5.5",
+    "rimraf": "^2.6.1"
   },
   "jupyterlab": {
     "extension": "lib/labplugin"

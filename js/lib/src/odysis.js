@@ -2,7 +2,6 @@ let widgets = require('@jupyter-widgets/base');
 let _ = require('lodash');
 let object_values = require('object.values');
 require('./three');
-require('./odysis.css');
 let serialization = require('./serialization');
 let slider = require('./slider');
 
@@ -42,7 +41,9 @@ let SceneView = widgets.DOMWidgetView.extend({
 
     render: function() {
         this.displayed.then(() => {
-            this.el.classList.add('odysis-scene');
+            this.el.style.height = '400px';
+            this.el.style.overflow = 'hidden';
+            this.el.style.flex = '1 1 auto';
             this.view = new View(this.el);
 
             this.view.renderer.setClearColor(this.model.get('background_color'));
