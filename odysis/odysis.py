@@ -16,6 +16,7 @@ from ipywidgets import (
     link,
     VBox, HBox
 )
+import vtk
 
 from .serialization import array_serialization
 from .vtk_loader import (
@@ -175,7 +176,20 @@ class Mesh(Widget):
 
     @staticmethod
     def from_vtk(path):
-        grid = load_vtk(path)
+        """ Pass a path to a VTK Unstructured Grid file (``.vtu``) or pass a
+        ```vtkUnstructuredGrid`` object to use.
+
+        Parameters
+        ----------
+        path : str or vtk.vtkUnstructuredGrid
+            The path to the VTK file or an unstructured grid in memory.
+        """
+        if isinstance(path, str):
+            grid = load_vtk(path)
+        elif isinstance(path, vtk.vtkUnstructuredGrid):
+            grid = path
+        else:
+            raise TypeError("Only unstructured grids supported at this time.")
 
         grid.ComputeBounds()
         bounding_box = grid.GetBounds()
@@ -187,6 +201,7 @@ class Mesh(Widget):
             data=_grid_data_to_data_widget(get_ugrid_data(grid)),
             bounding_box=bounding_box
         )
+
 
     def reload(self, path,
                reload_vertices=False, reload_triangles=False,
