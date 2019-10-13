@@ -45,7 +45,9 @@ With pip: (coming soon)
 For a development installation (requires npm),
 
     $ git clone https://github.com/martinRenou/Odysis.git
-    $ cd Odysis
+    $ cd Odysis/js
+    $ npm build
+    $ cd ..
     $ pip install -e .
     $ jupyter nbextension install --py --symlink --sys-prefix odysis
     $ jupyter nbextension enable --py --sys-prefix odysis
