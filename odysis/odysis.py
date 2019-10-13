@@ -188,6 +188,9 @@ class Mesh(Widget):
             grid = load_vtk(path)
         elif isinstance(path, vtk.vtkUnstructuredGrid):
             grid = path
+        elif hasattr(path, "cast_to_unstructured_grid"):
+            # Allows support for any PyVista mesh
+            grid = path.cast_to_unstructured_grid()
         else:
             raise TypeError("Only unstructured grids supported at this time.")
 
