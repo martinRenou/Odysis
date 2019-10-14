@@ -4,6 +4,7 @@
 
 let PlugInBlock = require('../PlugInBlock');
 let SliceUtils = require('./SliceUtils');
+let {THREE, Nodes} = require('../../three');
 
 /**
  * ClipPlane class
@@ -60,7 +61,7 @@ class ClipPlane extends PlugInBlock {
       'planePosition': () => {
         this._updateFillPlaneGeometry();
 
-        this._planePositionNode.number = this._planePosition;
+        this._planePositionNode.value = this._planePosition;
       }
     };
 
@@ -80,28 +81,27 @@ class ClipPlane extends PlugInBlock {
 
   _process () {
     // Node structure for clip plane effect
-    this._planeNormalNode = new THREE.Vector3Node(
+    this._planeNormalNode = new Nodes.Vector3Node(
       this._planeNormal[0],
       this._planeNormal[1],
       this._planeNormal[2]
     );
-    this._planePositionNode = new THREE.FloatNode(
+    this._planePositionNode = new Nodes.FloatNode(
       this._planePosition
     );
 
-    // Do not use: position = new THREE.PositionNode() !!!
     let currentPosition = this.getCurrentPositionNode();
 
-    let compute_dot = new THREE.Math2Node(
+    let compute_dot = new Nodes.MathNode(
       currentPosition,
       this._planeNormalNode,
-      THREE.Math2Node.DOT
+      Nodes.MathNode.DOT
     );
 
-    let clipPlaneAlpha = new THREE.Math2Node(
+    let clipPlaneAlpha = new Nodes.MathNode(
       compute_dot,
       this._planePositionNode,
-      THREE.Math2Node.STEP
+      Nodes.MathNode.STEP
     );
 
     this.addAlphaNode('MUL', clipPlaneAlpha);

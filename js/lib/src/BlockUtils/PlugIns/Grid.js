@@ -3,7 +3,7 @@
  * **/
 
 let PlugInBlock = require('../PlugInBlock');
-let THREE = require('../../three');
+let {THREE, Nodes} = require('../../three');
 
 /**
  * Grid class
@@ -28,10 +28,10 @@ class Grid extends PlugInBlock {
         this.updateMaterial();
       },
       'step': (value) => {
-        this._gridCall.inputs.gridstep.number = value;
+        this._gridCall.inputs.gridstep.value = value;
       },
       'width': (value) => {
-        this._gridCall.inputs.width.number = value;
+        this._gridCall.inputs.width.value = value;
       },
     };
 
@@ -44,19 +44,19 @@ class Grid extends PlugInBlock {
   }
 
   _process () {
-    this._gridCall = new THREE.FunctionCallNode(this._getFunctionNode());
+    this._gridCall = new Nodes.FunctionCallNode(this._getFunctionNode());
 
     this._gridCall.inputs.oldcolor = this.getCurrentColorNode();
-    this._gridCall.inputs.gridcolor = new THREE.ColorNode(this._color);
+    this._gridCall.inputs.gridcolor = new Nodes.ColorNode(this._color);
     this._gridCall.inputs.position = this.getCurrentPositionNode();
-    this._gridCall.inputs.gridstep = new THREE.FloatNode(this._step);
-    this._gridCall.inputs.width = new THREE.FloatNode(this._width);
+    this._gridCall.inputs.gridstep = new Nodes.FloatNode(this._step);
+    this._gridCall.inputs.width = new Nodes.FloatNode(this._width);
 
     this.addColorNode('REPLACE', this._gridCall);
   }
 
   _getFunctionNode () {
-    return new THREE.FunctionNode(
+    return new Nodes.FunctionNode(
       `vec3 gridFunc${this._plugInID}(vec3 oldcolor, vec3 gridcolor, vec3 position, float gridstep, float width){
          float factor = step(0.0, mod(position.${this._axis} + width * 0.5, gridstep) - width);
          return factor * oldcolor + (1.0 - factor) * gridcolor;

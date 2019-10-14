@@ -2,7 +2,7 @@
  * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
-let THREE = require('../three');
+let {THREE} = require('../three');
 
 let blockTypeRegister = {};
 
@@ -151,17 +151,10 @@ class View {
    */
   addDataBlock (vertices, faces, data, tetras) {
     let block = new DataBlock(this.scene, vertices, faces, data, tetras);
-    return block.process().then(
-      () => {
-        // On fulfilled
-        this.blocks.push(block);
-        return block;
-      },
-      () => {
-        // On reject
-        return false;
-      }
-    );
+    return block.process().then(() => {
+      this.blocks.push(block);
+      return block;
+     });
   }
 
   /**
@@ -176,17 +169,10 @@ class View {
     if (blockTypeRegister[blockType]) {
       let newBlock = new blockTypeRegister[blockType](parent);
 
-      return newBlock.process().then(
-        () => {
-          // On fulfilled
-          this.blocks.push(newBlock);
-          return newBlock;
-        },
-        (error) => {
-          // On reject
-          throw new Error(error);
-        }
-      );
+      return newBlock.process().then(() => {
+        this.blocks.push(newBlock);
+        return newBlock;
+      });
     } else {
       throw new Error('Unknown type ' + blockType);
     }
