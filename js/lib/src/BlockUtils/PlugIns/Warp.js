@@ -3,6 +3,7 @@
  * **/
 
 let PlugInBlock = require('../PlugInBlock');
+let {THREE, Nodes} = require('../../three');
 
 /**
  * Warp class
@@ -22,7 +23,7 @@ class Warp extends PlugInBlock {
    */
   constructor (parentBlock, warpFactor = 1) {
     let setters = {
-      'warpFactor': (factor) => { this._warpFactorNode.number = factor;}
+      'warpFactor': (factor) => { this._warpFactorNode.value = factor;}
     };
 
     super(parentBlock, setters);
@@ -36,13 +37,13 @@ class Warp extends PlugInBlock {
 
   _process () {
     // Create a FloatNode representing the warp factor in shaders
-    this._warpFactorNode = new THREE.FloatNode(this._warpFactor);
+    this._warpFactorNode = new Nodes.FloatNode(this._warpFactor);
 
     // Create the translation vector used in shaders
-    this._warpTranslation = new THREE.OperatorNode(
+    this._warpTranslation = new Nodes.OperatorNode(
       this._inputDataNode,
       this._warpFactorNode,
-      THREE.OperatorNode.MUL
+      Nodes.OperatorNode.MUL
     );
 
     // Add the node to materials

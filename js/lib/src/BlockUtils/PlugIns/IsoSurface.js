@@ -4,6 +4,7 @@
 
 let PlugInBlock = require('../PlugInBlock');
 let IsoSurfaceUtils = require('./IsoSurfaceUtils');
+let {THREE} = require('../../three');
 
 /**
  * IsoSurface class

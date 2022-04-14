@@ -33,7 +33,6 @@ class IsoSurfaceUtils {
     this._Emax = undefined;
 
     this.surfaceMaterial = block.getCurrentMaterial();
-    this.surfaceMaterial.side = THREE.DoubleSide;
   }
 
   _createTree (array, value = 'min') {

@@ -2,7 +2,7 @@
  * @author: Martin Renou / martin.renou@gmail.com
  * **/
 
-let THREE = require('../three');
+let {THREE, Nodes} = require('../three');
 let Block = require('./Block');
 
 /**
@@ -48,8 +48,8 @@ class DataBlock extends Block {
       this.initBufferGeometry();
 
       // Create basic material and build it
-      this._material = new THREE.StandardNodeMaterial();
-      this._material.shading = THREE.FlatShading;
+      this._material = new Nodes.StandardNodeMaterial();
+      this._material.FlatShading = true;
       this._material.build();
 
       // Nodes for computing effects
@@ -61,9 +61,6 @@ class DataBlock extends Block {
       this._material._positionVaryingNodes = [];
       this._material._colorVaryingNodes = [];
       this._material._alphaVaryingNodes = [];
-
-      // Disable backface culling (to fix display issues with planes)
-      this._material.side = THREE.DoubleSide;
 
       // Initialize mesh position/rotation/scale
       this._meshes.push(
